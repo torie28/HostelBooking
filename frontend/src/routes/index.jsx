@@ -1,5 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
-import { Signup } from "../features/auth/pages/signup/Signup";
+import { Signup } from "../features/auth/pages/sign up/Signup";
 import { Signin } from "../features/auth/pages/signin/Signin";
 import NotFound from "../pages/components/PageNotfound";
 import { StudentDashboard } from "../features/dashboards/studentdashboard/StudentDashboard";
@@ -26,8 +26,8 @@ const router = createBrowserRouter([
     {
         path: "/admindashboard",
         element: <AdminDashboard />
-            
-        
+
+
     },
     {
         path: "*",
