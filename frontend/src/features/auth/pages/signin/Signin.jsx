@@ -104,7 +104,7 @@ export function Signin() {
                     {/* Left Side Illustration */}
                     <div className="flex-1 hidden lg:block">
                         <img
-                            src="/src/assets/image/login-page-illustration-svg-download-png-3783954.webp"
+                            src="/images/login-page-illustration-svg-download-png-3783954.webp"
                             alt="Login Page Illustration"
                             className="w-full h-auto max-w-2xl rounded-lg"
                         />
