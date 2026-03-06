@@ -141,6 +141,7 @@ export function StudentDashboard() {
                 room: selectedRoom.room_number,
                 bed: selectedBed,
                 controlNumber,
+                status: 'booked', // Initial status is 'booked'
                 timestamp: new Date().toISOString()
             };
 
@@ -189,6 +190,24 @@ export function StudentDashboard() {
     const handleGenerateControlNumber = () => {
         generateControlNumber();
         setControlNumberGenerated(true);
+    };
+
+    const handlePayment = () => {
+        if (!studentBooking) return;
+
+        // Update the booking status to 'paid'
+        const updatedBooking = {
+            ...studentBooking,
+            status: 'paid',
+            paymentTimestamp: new Date().toISOString()
+        };
+
+        // Update state and localStorage
+        setStudentBooking(updatedBooking);
+        localStorage.setItem('studentBooking', JSON.stringify(updatedBooking));
+
+        // Show success message
+        alert('Payment successful! Your booking is now confirmed.');
     };
 
     // Get all rooms from all hostels based on gender filter
@@ -243,7 +262,7 @@ export function StudentDashboard() {
                     <h2 className="text-xl font-semibold mb-4 text-gray-800">Your Current Booking</h2>
                     {studentBooking ? (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                                 <div>
                                     <p className="text-sm text-gray-600">Hostel</p>
                                     <p className="font-semibold text-green-800">{studentBooking.hostel}</p>
@@ -259,6 +278,25 @@ export function StudentDashboard() {
                                 <div>
                                     <p className="text-sm text-gray-600">Control Number</p>
                                     <p className="font-semibold text-green-800">{studentBooking.controlNumber}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-600">Status</p>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`font-semibold px-2 py-1 rounded-full text-xs ${studentBooking.status === 'paid'
+                                            ? 'bg-green-100 text-green-800'
+                                            : 'bg-yellow-100 text-yellow-800'
+                                            }`}>
+                                            {studentBooking.status === 'paid' ? '✓ Paid' : '⏳ Booked'}
+                                        </span>
+                                        {studentBooking.status === 'booked' && (
+                                            <button
+                                                onClick={handlePayment}
+                                                className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-full transition-colors"
+                                            >
+                                                Pay Now
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
