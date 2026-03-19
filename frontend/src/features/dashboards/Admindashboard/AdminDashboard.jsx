@@ -19,6 +19,7 @@ export function AdminDashboard() {
     const [showEditHostelModal, setShowEditHostelModal] = useState(false);
     const [editingRoom, setEditingRoom] = useState(null);
     const [editingHostel, setEditingHostel] = useState(null);
+    const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
     const navigate = useNavigate();
 
     // Form states
@@ -99,6 +100,13 @@ export function AdminDashboard() {
         }
     };
 
+    const showNotification = (message, type = 'success') => {
+        setNotification({ show: true, message, type });
+        setTimeout(() => {
+            setNotification({ show: false, message: '', type: 'success' });
+        }, 3000);
+    };
+
     const handleEditHostel = (hostel) => {
         setEditingHostel(hostel);
         setNewHostel({
@@ -125,9 +133,11 @@ export function AdminDashboard() {
                 setNewHostel({ name: '', gender: '', capacity: '', status: '' });
                 setShowEditHostelModal(false);
                 setEditingHostel(null);
+                showNotification('Hostel updated successfully!', 'success');
             }
         } catch (error) {
             console.error('Error updating hostel:', error);
+            showNotification('Error updating hostel', 'error');
         }
     };
 
@@ -274,6 +284,17 @@ export function AdminDashboard() {
 
     return (
         <div className="min-h-screen bg-gray-100">
+            {/* Notification */}
+            {notification.show && (
+                <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+                    <div className={`px-6 py-3 rounded-lg shadow-lg text-white font-medium ${notification.type === 'success'
+                            ? 'bg-green-500'
+                            : 'bg-red-500'
+                        }`}>
+                        {notification.message}
+                    </div>
+                </div>
+            )}
             {/* Header */}
             <div className="bg-white shadow-sm border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -409,6 +430,7 @@ export function AdminDashboard() {
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacity</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                         </tr>
                                     </thead>
@@ -418,6 +440,16 @@ export function AdminDashboard() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{hostel.name}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hostel.gender}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hostel.capacity}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${hostel.status === 'active'
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : hostel.status === 'inactive'
+                                                            ? 'bg-red-100 text-red-800'
+                                                            : 'bg-yellow-100 text-yellow-800'
+                                                        }`}>
+                                                        {hostel.status || 'active'}
+                                                    </span>
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     <button
                                                         onClick={() => handleEditHostel(hostel)}
