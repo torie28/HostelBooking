@@ -47,7 +47,15 @@ class LoginController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Login successful',
-                'user' => $user,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'admission_number' => $user->admission_number,
+                    'level' => $user->level,
+                    'phone_number' => $user->phone_number,
+                    'role' => $user->role,
+                ],
                 'token' => $token
             ]);
 
