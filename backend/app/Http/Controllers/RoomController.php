@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Room;
 use App\Models\Hostel;
+use App\Models\Bed;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -225,5 +226,47 @@ class RoomController extends Controller
             ->get();
 
         return response()->json($availableRooms);
+    }
+
+    public function updateBed(Request $request, $id)
+    {
+        $bed = Bed::find($id);
+        
+        if (!$bed) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bed not found'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'bed_number' => 'sometimes|string|max:50',
+            'room_id' => 'sometimes|exists:rooms,id',
+            'status' => 'sometimes|in:available,occupied',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $bed->update($request->only(['bed_number', 'room_id', 'status']));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Bed updated successfully',
+                'bed' => $bed->load('room')
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bed update failed: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

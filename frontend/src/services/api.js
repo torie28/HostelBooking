@@ -78,6 +78,18 @@ export const roomApi = {
         method: 'POST',
         body: JSON.stringify(roomData)
     }),
+
+    // Update room
+    update: (id, roomData) => apiRequest(`/rooms/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(roomData)
+    }),
+
+    // Update bed
+    updateBed: (id, bedData) => apiRequest(`/beds/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(bedData)
+    }),
 };
 
 // Gender API functions

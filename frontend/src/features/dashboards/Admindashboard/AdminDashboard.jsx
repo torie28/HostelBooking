@@ -15,8 +15,10 @@ export function AdminDashboard() {
     const [showAddHostelModal, setShowAddHostelModal] = useState(false);
     const [showAddRoomModal, setShowAddRoomModal] = useState(false);
     const [showEditRoomModal, setShowEditRoomModal] = useState(false);
-    const [showAddBedModal, setShowAddBedModal] = useState(false);
     const [showEditHostelModal, setShowEditHostelModal] = useState(false);
+    const [showAddBedModal, setShowAddBedModal] = useState(false);
+    const [showEditBedModal, setShowEditBedModal] = useState(false);
+    const [editingBed, setEditingBed] = useState(null);
     const [editingRoom, setEditingRoom] = useState(null);
     const [editingHostel, setEditingHostel] = useState(null);
     const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
@@ -26,6 +28,7 @@ export function AdminDashboard() {
     const [newHostel, setNewHostel] = useState({ name: '', gender: '', capacity: '' });
     const [newRoom, setNewRoom] = useState({ hostel_id: '', room_number: '', floor_number: '', capacity: 4, status: 'available' });
     const [newBed, setNewBed] = useState({ room_id: '', bed_number: '', status: 'available' });
+    const [editingBedData, setEditingBedData] = useState({ bed_number: '', room_id: '', status: 'available' });
 
     useEffect(() => {
         const userData = localStorage.getItem('user');
@@ -66,7 +69,7 @@ export function AdminDashboard() {
 
                         // Only calculate status if no explicit status is set in database
                         if (!room.status) {
-                            const occupiedBeds = room.beds ? room.beds.filter(bed => bed.status === 'occupied').length : 0;
+                            const occupiedBeds = room.beds ? room.beds.filter(bed => bed.status === 'occupied' || bed.status === 'taken').length : 0;
                             const totalBeds = room.total_beds || 0;
 
                             if (occupiedBeds === 0) {
@@ -84,7 +87,7 @@ export function AdminDashboard() {
                             room_number: room.room_number,
                             floor_number: room.floor_number,
                             capacity: room.total_beds || 0,
-                            available_beds: (room.total_beds || 0) - (room.beds ? room.beds.filter(bed => bed.status === 'occupied').length : 0),
+                            available_beds: (room.total_beds || 0) - (room.beds ? room.beds.filter(bed => bed.status === 'occupied' || bed.status === 'taken').length : 0),
                             status: roomStatus
                         });
 
@@ -292,6 +295,40 @@ export function AdminDashboard() {
         navigate('/');
     };
 
+    const handleEditBed = (bed) => {
+        setEditingBed(bed);
+        setEditingBedData({
+            bed_number: bed.bed_number,
+            room_id: bed.room_id,
+            status: bed.status
+        });
+        setShowEditBedModal(true);
+    };
+
+    const handleUpdateBed = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await roomApi.updateBed(editingBed.id, {
+                bed_number: editingBedData.bed_number,
+                room_id: editingBedData.room_id,
+                status: editingBedData.status
+            });
+
+            if (response.success) {
+                await fetchData();
+                setEditingBedData({ bed_number: '', room_id: '', status: 'available' });
+                setShowEditBedModal(false);
+                setEditingBed(null);
+                showNotification('Bed updated successfully!', 'success');
+            } else {
+                showNotification(response.message || 'Error updating bed', 'error');
+            }
+        } catch (error) {
+            console.error('Error updating bed:', error);
+            showNotification('Error updating bed', 'error');
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -396,7 +433,7 @@ export function AdminDashboard() {
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0 bg-yellow-500 rounded-md p-3">
                                         <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2m8 0V7a2 2 0 00-2-2h-8z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2m8 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                         </svg>
                                     </div>
                                     <div className="ml-5 w-0 flex-1">
@@ -524,7 +561,9 @@ export function AdminDashboard() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{room.floor_number}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hostels.find(h => h.id === room.hostel_id)?.name}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{room.capacity}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{room.available_beds}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {room.available_beds === 0 ? 'all taken' : room.available_beds}
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${room.status === 'available'
                                                         ? 'bg-green-100 text-green-800'
@@ -578,7 +617,7 @@ export function AdminDashboard() {
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bed Number</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
@@ -594,7 +633,14 @@ export function AdminDashboard() {
                                                         {bed.status}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{bed.student_name || '-'}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <button
+                                                        onClick={() => handleEditBed(bed)}
+                                                        className="text-blue-600 hover:text-blue-900 mr-3"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -936,6 +982,73 @@ export function AdminDashboard() {
                                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
                                     >
                                         Add Bed
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Bed Modal */}
+            {showEditBedModal && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <div className="mt-3 text-center">
+                            <h3 className="text-lg leading-6 font-medium text-gray-900">Edit Bed</h3>
+                            <form onSubmit={handleUpdateBed} className="mt-4 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Bed Number</label>
+                                    <input
+                                        type="text"
+                                        value={editingBedData.bed_number}
+                                        onChange={(e) => setEditingBedData({ ...editingBedData, bed_number: e.target.value })}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Room</label>
+                                    <select
+                                        value={editingBedData.room_id}
+                                        onChange={(e) => setEditingBedData({ ...editingBedData, room_id: e.target.value })}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                        required
+                                    >
+                                        <option value="">Select Room</option>
+                                        {rooms.map((room) => (
+                                            <option key={room.id} value={room.id}>{room.room_number}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                                    <select
+                                        value={editingBedData.status}
+                                        onChange={(e) => setEditingBedData({ ...editingBedData, status: e.target.value })}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                        required
+                                    >
+                                        <option value="available">Available</option>
+                                        <option value="occupied">Occupied</option>
+                                    </select>
+                                </div>
+                                <div className="flex justify-end space-x-3 mt-6">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowEditBedModal(false);
+                                            setEditingBed(null);
+                                        }}
+                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+                                    >
+                                        Update Bed
                                     </button>
                                 </div>
                             </form>
