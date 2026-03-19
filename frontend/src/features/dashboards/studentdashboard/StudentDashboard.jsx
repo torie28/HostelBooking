@@ -38,7 +38,8 @@ export function StudentDashboard() {
                 gender: hostel.gender,
                 totalCapacity: hostel.capacity || 100,
                 availableRooms: hostel.available_rooms || 0,
-                rooms: hostel.rooms || []
+                rooms: hostel.rooms || [],
+                status: hostel.status || 'active'
             }));
             setHostels(transformedHostels);
         } catch (err) {
@@ -394,13 +395,17 @@ export function StudentDashboard() {
                                         <div
                                             key={hostel.id}
                                             onClick={() => {
-                                                setSelectedHostel(hostel);
-                                                setSelectedRoom(null);
-                                                setSelectedBed(null);
+                                                if (hostel.status === 'active') {
+                                                    setSelectedHostel(hostel);
+                                                    setSelectedRoom(null);
+                                                    setSelectedBed(null);
+                                                }
                                             }}
                                             className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedHostel?.id === hostel.id
                                                 ? 'border-green-500 bg-green-50'
-                                                : 'border-gray-300 hover:border-gray-400'
+                                                : hostel.status === 'active'
+                                                    ? 'border-gray-300 hover:border-gray-400'
+                                                    : 'border-red-300 bg-red-50 cursor-not-allowed'
                                                 }`}
                                         >
                                             <h3 className="font-semibold text-lg">{hostel.name}</h3>
@@ -408,7 +413,22 @@ export function StudentDashboard() {
                                                 <p>Total Capacity: {hostel.totalCapacity} students</p>
                                                 <p>Available Rooms: {hostel.availableRooms}</p>
                                                 <p>Gender: {hostel.gender === 'male' ? 'Boys' : 'Girls'}</p>
+                                                <div className="mt-2">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${hostel.status === 'active'
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : hostel.status === 'maintenance'
+                                                            ? 'bg-yellow-100 text-yellow-800'
+                                                            : 'bg-red-100 text-red-800'
+                                                        }`}>
+                                                        {hostel.status === 'active' ? '✓ Active' : hostel.status === 'maintenance' ? '🔧 Maintenance' : '✗ Inactive'}
+                                                    </span>
+                                                </div>
                                             </div>
+                                            {hostel.status !== 'active' && (
+                                                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
+                                                    {hostel.status === 'maintenance' ? 'This hostel is under maintenance.' : 'This hostel is currently unavailable.'}
+                                                </div>
+                                            )}
                                         </div>
                                     ))
                                 ) : (
@@ -426,7 +446,7 @@ export function StudentDashboard() {
                     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                         <h2 className="text-xl font-semibold mb-4 text-gray-800">3. Hostel Details</h2>
                         <div className="bg-gray-50 p-4 rounded-lg">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                                 <div>
                                     <p className="text-sm text-gray-600">Name</p>
                                     <p className="font-semibold">{selectedHostel.name}</p>
@@ -442,6 +462,17 @@ export function StudentDashboard() {
                                 <div>
                                     <p className="text-sm text-gray-600">Available Rooms</p>
                                     <p className="font-semibold">{selectedHostel.availableRooms}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-600">Status</p>
+                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${selectedHostel.status === 'active'
+                                        ? 'bg-green-100 text-green-800'
+                                        : selectedHostel.status === 'maintenance'
+                                            ? 'bg-yellow-100 text-yellow-800'
+                                            : 'bg-red-100 text-red-800'
+                                        }`}>
+                                        {selectedHostel.status === 'active' ? '✓ Active' : selectedHostel.status === 'maintenance' ? '🔧 Maintenance' : '✗ Inactive'}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -478,45 +509,56 @@ export function StudentDashboard() {
                         {viewMode === 'grid' ? (
                             <>
                                 {/* Room Search Filter */}
-                                <div className="mb-6">
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            placeholder="Search room by number (e.g., 101, 102)..."
-                                            value={roomSearchTerm}
-                                            onChange={(e) => {
-                                                setRoomSearchTerm(e.target.value);
-                                                setSelectedRoom(null);
-                                                setSelectedBed(null);
-                                            }}
-                                            className="w-2/4 px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-full"
-                                        />
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                            </svg>
-                                        </div>
-                                        {roomSearchTerm && (
-                                            <button
-                                                onClick={() => {
-                                                    setRoomSearchTerm('');
+                                {selectedHostel.status === 'active' ? (
+                                    <div className="mb-6">
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                placeholder="Search room by number (e.g., 101, 102)..."
+                                                value={roomSearchTerm}
+                                                onChange={(e) => {
+                                                    setRoomSearchTerm(e.target.value);
                                                     setSelectedRoom(null);
                                                     setSelectedBed(null);
                                                 }}
-                                                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                            >
-                                                <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                className="w-2/4 px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-full"
+                                            />
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                                 </svg>
-                                            </button>
+                                            </div>
+                                            {roomSearchTerm && (
+                                                <button
+                                                    onClick={() => {
+                                                        setRoomSearchTerm('');
+                                                        setSelectedRoom(null);
+                                                        setSelectedBed(null);
+                                                    }}
+                                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                                >
+                                                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                        </div>
+                                        {roomSearchTerm && (
+                                            <p className="mt-2 text-sm text-gray-600">
+                                                Found {filteredRooms.length} room{filteredRooms.length !== 1 ? 's' : ''} matching "{roomSearchTerm}"
+                                            </p>
                                         )}
                                     </div>
-                                    {roomSearchTerm && (
-                                        <p className="mt-2 text-sm text-gray-600">
-                                            Found {filteredRooms.length} room{filteredRooms.length !== 1 ? 's' : ''} matching "{roomSearchTerm}"
+                                ) : (
+                                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                        <p className="text-red-700">
+                                            {selectedHostel.status === 'maintenance' ?
+                                                '🔧 This hostel is currently under maintenance. Room selection is not available.' :
+                                                '✗ This hostel is currently inactive. Room selection is not available.'
+                                            }
                                         </p>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
 
                                 {/* Rooms Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -579,7 +621,7 @@ export function StudentDashboard() {
                                             className="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         />
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 20 20">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                             </svg>
                                         </div>
@@ -736,45 +778,56 @@ export function StudentDashboard() {
                 {selectedRoom && (selectedRoom.status === 'available' || selectedRoom.status === 'full') && (
                     <div id="bed-selection-section" className="bg-white rounded-lg shadow-md p-6 mb-8">
                         <h2 className="text-xl font-semibold mb-4 text-gray-800">5. Bed Information</h2>
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                            <p className="text-gray-600 mb-4">Room {selectedRoom.room_number} - Bed Status:</p>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {selectedRoom.beds && selectedRoom.beds.map((bed) => {
-                                    const isRoomFull = selectedRoom.status === 'full';
-                                    const isBedAvailable = !isRoomFull && bed.status === 'available';
-                                    const bookingInfo = bed.active_booking && bed.active_booking[0];
-                                    return (
-                                        <button
-                                            key={bed.id}
-                                            onClick={() => isBedAvailable && handleBedSelection(bed.bed_number)}
-                                            disabled={!isBedAvailable}
-                                            className={`p-4 rounded-lg border-2 transition-all ${selectedBed === bed.bed_number
-                                                ? 'border-green-500 bg-green-50'
-                                                : isBedAvailable
-                                                    ? 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                                                    : 'border-red-300 bg-red-50 cursor-not-allowed'
-                                                }`}
-                                        >
-                                            <div className="text-center">
-                                                <div className="text-2xl mb-2">🛏️</div>
-                                                <div className="font-medium">Bed {bed.bed_number}</div>
-                                                <div className={`text-sm ${isBedAvailable ? 'text-green-600' : 'text-red-600'
-                                                    }`}>
-                                                    {isBedAvailable ? 'Available' :
-                                                        isRoomFull ? 'Taken' :
-                                                            bookingInfo ? `Booked by ${bookingInfo.student?.name || 'Student'}` : 'Occupied'}
+                        {selectedHostel.status === 'active' ? (
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                                <p className="text-gray-600 mb-4">Room {selectedRoom.room_number} - Bed Status:</p>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {selectedRoom.beds && selectedRoom.beds.map((bed) => {
+                                        const isRoomFull = selectedRoom.status === 'full';
+                                        const isBedAvailable = !isRoomFull && bed.status === 'available';
+                                        const bookingInfo = bed.active_booking && bed.active_booking[0];
+                                        return (
+                                            <button
+                                                key={bed.id}
+                                                onClick={() => isBedAvailable && handleBedSelection(bed.bed_number)}
+                                                disabled={!isBedAvailable}
+                                                className={`p-4 rounded-lg border-2 transition-all ${selectedBed === bed.bed_number
+                                                    ? 'border-green-500 bg-green-50'
+                                                    : isBedAvailable
+                                                        ? 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                                                        : 'border-red-300 bg-red-50 cursor-not-allowed'
+                                                    }`}
+                                            >
+                                                <div className="text-center">
+                                                    <div className="text-2xl mb-2">🛏️</div>
+                                                    <div className="font-medium">Bed {bed.bed_number}</div>
+                                                    <div className={`text-sm ${isBedAvailable ? 'text-green-600' : 'text-red-600'
+                                                        }`}>
+                                                        {isBedAvailable ? 'Available' :
+                                                            isRoomFull ? 'Taken' :
+                                                                bookingInfo ? `Booked by ${bookingInfo.student?.name || 'Student'}` : 'Occupied'}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                            {selectedRoom.status === 'full' && (
-                                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                    <p className="text-red-700 text-sm">This room is currently full (4/4 beds occupied). No beds available for booking.</p>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
-                            )}
-                        </div>
+                                {selectedRoom.status === 'full' && (
+                                    <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                        <p className="text-red-700 text-sm">This room is currently full (4/4 beds occupied). No beds available for booking.</p>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-red-700">
+                                    {selectedHostel.status === 'maintenance' ?
+                                        '🔧 Bed selection is not available. This hostel is currently under maintenance.' :
+                                        '✗ Bed selection is not available. This hostel is currently inactive.'
+                                    }
+                                </p>
+                            </div>
+                        )}
                     </div>
                 )}
 
