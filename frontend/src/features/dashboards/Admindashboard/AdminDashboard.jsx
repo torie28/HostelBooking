@@ -61,13 +61,31 @@ export function AdminDashboard() {
             hostelsData.forEach(hostel => {
                 if (hostel.rooms) {
                     hostel.rooms.forEach(room => {
+                        // Determine room status - prioritize database status, then calculate based on bed availability
+                        let roomStatus = room.status || 'available';
+
+                        // Only calculate status if no explicit status is set in database
+                        if (!room.status) {
+                            const occupiedBeds = room.beds ? room.beds.filter(bed => bed.status === 'occupied').length : 0;
+                            const totalBeds = room.total_beds || 0;
+
+                            if (occupiedBeds === 0) {
+                                roomStatus = 'available';
+                            } else if (occupiedBeds >= totalBeds) {
+                                roomStatus = 'full';
+                            } else {
+                                roomStatus = 'partially_occupied';
+                            }
+                        }
+
                         allRooms.push({
                             id: room.id,
                             hostel_id: room.hostel_id,
                             room_number: room.room_number,
                             floor_number: room.floor_number,
                             capacity: room.total_beds || 0,
-                            available_beds: (room.total_beds || 0) - (room.beds ? room.beds.filter(bed => bed.status === 'occupied').length : 0)
+                            available_beds: (room.total_beds || 0) - (room.beds ? room.beds.filter(bed => bed.status === 'occupied').length : 0),
+                            status: roomStatus
                         });
 
                         if (room.beds) {
@@ -288,8 +306,8 @@ export function AdminDashboard() {
             {notification.show && (
                 <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
                     <div className={`px-6 py-3 rounded-lg shadow-lg text-white font-medium ${notification.type === 'success'
-                            ? 'bg-green-500'
-                            : 'bg-red-500'
+                        ? 'bg-green-500'
+                        : 'bg-red-500'
                         }`}>
                         {notification.message}
                     </div>
@@ -495,6 +513,7 @@ export function AdminDashboard() {
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hostel</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacity</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Available Beds</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                         </tr>
                                     </thead>
@@ -506,6 +525,16 @@ export function AdminDashboard() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hostels.find(h => h.id === room.hostel_id)?.name}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{room.capacity}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{room.available_beds}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${room.status === 'available'
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : room.status === 'full'
+                                                            ? 'bg-red-100 text-red-800'
+                                                            : 'bg-yellow-100 text-yellow-800'
+                                                        }`}>
+                                                        {room.status === 'partially_occupied' ? 'Partially Occupied' : room.status.charAt(0).toUpperCase() + room.status.slice(1)}
+                                                    </span>
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     <button
                                                         onClick={() => handleEditRoom(room, setEditingRoom, setNewRoom, setShowEditRoomModal)}
