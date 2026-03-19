@@ -11,6 +11,8 @@ use App\Http\Controllers\PaymentHostelController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\TransactionHostelController;
 use App\Http\Controllers\GenderController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\StudentDashboardController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -48,3 +50,20 @@ Route::get('/payment-hostels/pending', [PaymentHostelController::class, 'getPend
 Route::apiResource('transaction-hostels', TransactionHostelController::class);
 Route::get('/transaction-hostels/payment/{paymentId}', [TransactionHostelController::class, 'getTransactionsByPayment']);
 Route::get('/transaction-hostels/completed', [TransactionHostelController::class, 'getCompletedTransactions']);
+
+// Dashboard routes with role-based access
+Route::middleware('auth:sanctum')->group(function () {
+    // Admin dashboard routes
+    Route::middleware('role:admin')->prefix('admin')->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'dashboard']);
+        Route::get('/users', [AdminDashboardController::class, 'getUsers']);
+        Route::put('/users/{userId}/role', [AdminDashboardController::class, 'updateUserRole']);
+    });
+
+    // Student dashboard routes
+    Route::middleware('role:student')->prefix('student')->group(function () {
+        Route::get('/dashboard', [StudentDashboardController::class, 'dashboard']);
+        Route::get('/my-bookings', [StudentDashboardController::class, 'getMyBookings']);
+        Route::post('/book-room', [StudentDashboardController::class, 'bookRoom']);
+    });
+});

@@ -79,8 +79,9 @@ export function Signin() {
 
                 alert('Login successful! Redirecting to dashboard...');
 
-                // Redirect to the intended page or default to studentdashboard
-                const from = location.state?.from?.pathname || '/studentdashboard';
+                // Redirect based on user role
+                const dashboardPath = responseData.user.role === 'admin' ? '/admindashboard' : '/studentdashboard';
+                const from = location.state?.from?.pathname || dashboardPath;
                 navigate(from, { replace: true });
             } else {
                 setErrors({

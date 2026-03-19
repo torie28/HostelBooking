@@ -740,7 +740,8 @@ export function StudentDashboard() {
                             <p className="text-gray-600 mb-4">Room {selectedRoom.room_number} - Bed Status:</p>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {selectedRoom.beds && selectedRoom.beds.map((bed) => {
-                                    const isBedAvailable = bed.status === 'available';
+                                    const isRoomFull = selectedRoom.status === 'full';
+                                    const isBedAvailable = !isRoomFull && bed.status === 'available';
                                     const bookingInfo = bed.active_booking && bed.active_booking[0];
                                     return (
                                         <button
@@ -760,7 +761,8 @@ export function StudentDashboard() {
                                                 <div className={`text-sm ${isBedAvailable ? 'text-green-600' : 'text-red-600'
                                                     }`}>
                                                     {isBedAvailable ? 'Available' :
-                                                        bookingInfo ? `Booked by ${bookingInfo.student?.name || 'Student'}` : 'Occupied'}
+                                                        isRoomFull ? 'Taken' :
+                                                            bookingInfo ? `Booked by ${bookingInfo.student?.name || 'Student'}` : 'Occupied'}
                                                 </div>
                                             </div>
                                         </button>
