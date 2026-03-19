@@ -19,6 +19,7 @@ export function AdminDashboard() {
     const [showEditHostelModal, setShowEditHostelModal] = useState(false);
     const [editingRoom, setEditingRoom] = useState(null);
     const [editingHostel, setEditingHostel] = useState(null);
+    const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
     const navigate = useNavigate();
 
     // Form states
@@ -99,12 +100,20 @@ export function AdminDashboard() {
         }
     };
 
+    const showNotification = (message, type = 'success') => {
+        setNotification({ show: true, message, type });
+        setTimeout(() => {
+            setNotification({ show: false, message: '', type: 'success' });
+        }, 3000);
+    };
+
     const handleEditHostel = (hostel) => {
         setEditingHostel(hostel);
         setNewHostel({
             name: hostel.name,
             gender: hostel.gender,
-            capacity: hostel.capacity
+            capacity: hostel.capacity,
+            status: hostel.status || 'active'
         });
         setShowEditHostelModal(true);
     };
@@ -115,17 +124,20 @@ export function AdminDashboard() {
             const response = await hostelApi.update(editingHostel.id, {
                 name: newHostel.name,
                 gender: newHostel.gender,
-                capacity: parseInt(newHostel.capacity)
+                capacity: parseInt(newHostel.capacity),
+                status: newHostel.status || 'active'
             });
 
             if (response) {
                 await fetchData();
-                setNewHostel({ name: '', gender: '', capacity: '' });
+                setNewHostel({ name: '', gender: '', capacity: '', status: '' });
                 setShowEditHostelModal(false);
                 setEditingHostel(null);
+                showNotification('Hostel updated successfully!', 'success');
             }
         } catch (error) {
             console.error('Error updating hostel:', error);
+            showNotification('Error updating hostel', 'error');
         }
     };
 
@@ -272,6 +284,17 @@ export function AdminDashboard() {
 
     return (
         <div className="min-h-screen bg-gray-100">
+            {/* Notification */}
+            {notification.show && (
+                <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+                    <div className={`px-6 py-3 rounded-lg shadow-lg text-white font-medium ${notification.type === 'success'
+                            ? 'bg-green-500'
+                            : 'bg-red-500'
+                        }`}>
+                        {notification.message}
+                    </div>
+                </div>
+            )}
             {/* Header */}
             <div className="bg-white shadow-sm border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -407,6 +430,7 @@ export function AdminDashboard() {
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacity</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                         </tr>
                                     </thead>
@@ -416,6 +440,16 @@ export function AdminDashboard() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{hostel.name}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hostel.gender}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hostel.capacity}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${hostel.status === 'active'
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : hostel.status === 'inactive'
+                                                            ? 'bg-red-100 text-red-800'
+                                                            : 'bg-yellow-100 text-yellow-800'
+                                                        }`}>
+                                                        {hostel.status || 'active'}
+                                                    </span>
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     <button
                                                         onClick={() => handleEditHostel(hostel)}
@@ -873,6 +907,87 @@ export function AdminDashboard() {
                                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
                                     >
                                         Add Bed
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Hostel Modal */}
+            {showEditHostelModal && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <div className="mt-3 text-center">
+                            <h3 className="text-lg leading-6 font-medium text-gray-900">Edit Hostel</h3>
+                            <form onSubmit={handleUpdateHostel} className="mt-4 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Hostel Name</label>
+                                    <input
+                                        type="text"
+                                        value={newHostel.name}
+                                        onChange={(e) => setNewHostel({ ...newHostel, name: e.target.value })}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Gender</label>
+                                    <select
+                                        value={newHostel.gender}
+                                        onChange={(e) => setNewHostel({ ...newHostel, gender: e.target.value })}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                        required
+                                    >
+                                        <option value="">Select Gender</option>
+                                        {genders.map((gender) => (
+                                            <option key={gender.value} value={gender.value}>
+                                                {gender.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Capacity</label>
+                                    <input
+                                        type="number"
+                                        value={newHostel.capacity}
+                                        onChange={(e) => setNewHostel({ ...newHostel, capacity: e.target.value })}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                                    <select
+                                        value={newHostel.status || 'active'}
+                                        onChange={(e) => setNewHostel({ ...newHostel, status: e.target.value })}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                                        required
+                                    >
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="maintenance">Maintenance</option>
+                                    </select>
+                                </div>
+                                <div className="flex justify-end space-x-3 mt-6">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowEditHostelModal(false);
+                                            setEditingHostel(null);
+                                            setNewHostel({ name: '', gender: '', capacity: '' });
+                                        }}
+                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+                                    >
+                                        Update Hostel
                                     </button>
                                 </div>
                             </form>
