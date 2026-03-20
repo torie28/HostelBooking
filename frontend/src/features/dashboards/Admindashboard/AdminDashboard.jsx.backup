@@ -233,48 +233,55 @@ export function AdminDashboard() {
             } else {
                 console.error('Error adding room:', response.message);
             }
-        } catch (error) {
-            console.error('Error adding room:', error);
-        }
-    };
 
-    const handleAddBed = async (e) => {
-        e.preventDefault();
-        try {
-            console.log('Adding bed:', newBed);
-            setBeds([...beds, { ...newBed, id: Date.now() }]);
-            setNewBed({ room_id: '', bed_number: '', status: 'available' });
-            setShowAddBedModal(false);
-        } catch (error) {
-            console.error('Error adding bed:', error);
-        }
-    };
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `student_accommodation_${currentYear}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
 
-    const exportToExcel = () => {
-        const headers = ['Name', 'Email', 'Level', 'Hostel', 'Room', 'Bed'];
-        const csvContent = [
-            headers.join(','),
-            ...students.map(student =>
-                [student.name, student.email, student.level, student.hostel, student.room, student.bed]
-                    .map(field => `"${field}"`)
-                    .join(',')
-            )
-        ].join('\n');
+        const clearStudentData = () => {
+            if (window.confirm('Are you sure you want to clear all student booking data? This action cannot be undone and will remove all student hostel assignments.')) {
+                setStudents([]);
+                showNotification('All student booking data has been cleared successfully!', 'success');
+            }
+        };
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `student_accommodation_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    const clearStudentData = () => {
-        if (window.confirm('Are you sure you want to clear all student booking data? This action cannot be undone and will remove all student hostel assignments.')) {
-            setStudents([]);
+        const exportToPDF = () => {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+        <html>
+            <head>
+                <title>Student Accommodation Report</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #f2f2f2f; font-weight: bold; }
+                    h1 { color: #333; text-align: center; margin-bottom: 30px; }
+                </style>
+            </head>
+            <body>
+                <h1>Student Accommodation Report</h1>
+                <p>Generated on: ${new Date().toLocaleString()}</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Email</th>
+                            <th>Level</th>
+                            <th>Hostel</th>
+                            <th>Room</th>
+                            <th>Bed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${students.map(student => `
             showNotification('All student booking data has been cleared successfully!', 'success');
         }
     };
@@ -282,7 +289,7 @@ export function AdminDashboard() {
     const exportToPDF = () => {
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
-            <html>
+                < html >
                 <head>
                     <title>Student Accommodation Report</title>
                     <style>
@@ -321,7 +328,7 @@ export function AdminDashboard() {
                         </tbody>
                     </table>
                 </body>
-            </html>
+            </html >
         `);
         printWindow.document.close();
         printWindow.print();
@@ -393,10 +400,11 @@ export function AdminDashboard() {
             {/* Notification */}
             {notification.show && (
                 <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-                    <div className={`px-6 py-3 rounded-lg shadow-lg text-white font-medium ${notification.type === 'success'
-                        ? 'bg-green-500'
-                        : 'bg-red-500'
-                        }`}>
+                    <div className={`px - 6 py - 3 rounded - lg shadow - lg text - white font - medium ${
+        notification.type === 'success'
+            ? 'bg-green-500'
+            : 'bg-red-500'
+    } `}>
                         {notification.message}
                     </div>
                 </div>
@@ -450,10 +458,11 @@ export function AdminDashboard() {
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm capitalize ${activeTab === tab
-                                        ? 'border-blue-500 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                        }`}
+                                    className={`py - 4 px - 1 border - b - 2 font - medium text - sm capitalize ${
+        activeTab === tab
+            ? 'border-blue-500 text-blue-600'
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+    } `}
                                 >
                                     {tab}
                                 </button>
@@ -567,12 +576,13 @@ export function AdminDashboard() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hostel.gender}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hostel.capacity}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${hostel.status === 'active'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : hostel.status === 'inactive'
-                                                            ? 'bg-red-100 text-red-800'
-                                                            : 'bg-yellow-100 text-yellow-800'
-                                                        }`}>
+                                                    <span className={`inline - flex px - 2 py - 1 text - xs font - semibold rounded - full ${
+        hostel.status === 'active'
+            ? 'bg-green-100 text-green-800'
+            : hostel.status === 'inactive'
+                ? 'bg-red-100 text-red-800'
+                : 'bg-yellow-100 text-yellow-800'
+    } `}>
                                                         {hostel.status || 'active'}
                                                     </span>
                                                 </td>
@@ -636,12 +646,13 @@ export function AdminDashboard() {
                                                     {room.available_beds === 0 ? 'all taken' : room.available_beds}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${room.status === 'available'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : room.status === 'full'
-                                                            ? 'bg-red-100 text-red-800'
-                                                            : 'bg-yellow-100 text-yellow-800'
-                                                        }`}>
+                                                    <span className={`inline - flex px - 2 py - 1 text - xs font - semibold rounded - full ${
+        room.status === 'available'
+            ? 'bg-green-100 text-green-800'
+            : room.status === 'full'
+                ? 'bg-red-100 text-red-800'
+                : 'bg-yellow-100 text-yellow-800'
+    } `}>
                                                         {room.status === 'partially_occupied' ? 'Partially Occupied' : room.status.charAt(0).toUpperCase() + room.status.slice(1)}
                                                     </span>
                                                 </td>
@@ -804,10 +815,11 @@ export function AdminDashboard() {
                                                                 {bed.bed_number}
                                                             </td>
                                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${bed.status === 'available'
-                                                                    ? 'bg-green-100 text-green-800'
-                                                                    : 'bg-red-100 text-red-800'
-                                                                    }`}>
+                                                                <span className={`inline - flex px - 2 py - 1 text - xs font - semibold rounded - full ${
+        bed.status === 'available'
+            ? 'bg-green-100 text-green-800'
+            : 'bg-red-100 text-red-800'
+    } `}>
                                                                     {bed.status}
                                                                 </span>
                                                             </td>
