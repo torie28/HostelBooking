@@ -90,6 +90,11 @@ export const roomApi = {
         method: 'PUT',
         body: JSON.stringify(bedData)
     }),
+
+    // Delete bed
+    deleteBed: (id) => apiRequest(`/beds/${id}`, {
+        method: 'DELETE'
+    }),
 };
 
 // Gender API functions

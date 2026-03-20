@@ -269,4 +269,31 @@ class RoomController extends Controller
             ], 500);
         }
     }
+
+    public function deleteBed($id)
+    {
+        $bed = Bed::find($id);
+        
+        if (!$bed) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bed not found'
+            ], 404);
+        }
+
+        try {
+            $bed->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Bed deleted successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bed deletion failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
