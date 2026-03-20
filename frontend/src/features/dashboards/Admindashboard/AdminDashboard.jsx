@@ -368,25 +368,45 @@ export function AdminDashboard() {
                     </div>
                 </div>
             )}
-            {/* Header */}
-            <div className="bg-white shadow-sm border-b">
+            {/* Classic Header */}
+            <header className="bg-slate-800 border-b-2 border-slate-700 shadow-lg">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
-                        <div className="flex items-center">
-                            <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+                    <div className="flex justify-between items-center h-20">
+                        {/* Left Section - Title and Welcome */}
+                        <div className="flex items-center space-x-6">
+                            <div className="border-r border-slate-600 pr-6">
+                                <h1 className="text-2xl font-serif font-bold text-white tracking-wide">
+                                    Administration Portal
+                                </h1>
+                                <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider">Hostel Management System</p>
+                            </div>
                             {user && (
-                                <span className="ml-4 text-sm text-gray-600">Welcome, {user.name}</span>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium text-slate-200">Welcome back,</span>
+                                    <span className="text-lg font-semibold text-white">{user.name}</span>
+                                </div>
                             )}
                         </div>
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-black hover:bg-black/60"
-                        >
-                            Logout
-                        </button>
+
+                        {/* Right Section - Actions */}
+                        <div className="flex items-center space-x-4">
+                            <div className="text-right mr-6">
+                                <p className="text-xs text-slate-400 uppercase tracking-wider">System Time</p>
+                                <p className="text-sm font-medium text-slate-200">{new Date().toLocaleString()}</p>
+                            </div>
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center px-6 py-3 bg-slate-900 hover:bg-slate-700 text-white font-medium rounded-full border border-slate-600 transition-all duration-200 shadow-md hover:shadow-lg"
+                            >
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                                Sign Out
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </header>
 
             <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
                 {/* Tab Navigation */}
@@ -623,7 +643,7 @@ export function AdminDashboard() {
                                 <h3 className="text-lg leading-6 font-medium text-gray-900">Beds Management</h3>
                                 <button
                                     onClick={() => setShowAddBedModal(true)}
-                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-black/80"
                                     disabled={!selectedRoom}
                                 >
                                     Add Bed
@@ -645,7 +665,7 @@ export function AdminDashboard() {
                                                 setSelectedHostel('');
                                                 setSelectedRoom('');
                                             }}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                         >
                                             <option value="">Choose Gender...</option>
                                             {genders.map((gender) => (
@@ -668,7 +688,7 @@ export function AdminDashboard() {
                                                 setSelectedRoom('');
                                             }}
                                             disabled={!selectedGender}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                                         >
                                             <option value="">Choose Hostel...</option>
                                             {hostels
@@ -690,7 +710,7 @@ export function AdminDashboard() {
                                             value={selectedRoom}
                                             onChange={(e) => setSelectedRoom(e.target.value)}
                                             disabled={!selectedHostel}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                                         >
                                             <option value="">Choose Room...</option>
                                             {rooms
@@ -713,7 +733,7 @@ export function AdminDashboard() {
                                                 setSelectedHostel('');
                                                 setSelectedRoom('');
                                             }}
-                                            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-full text-gray-700 bg-black/10  focus:outline-none "
                                         >
                                             Reset Selection
                                         </button>
