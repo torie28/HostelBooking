@@ -334,6 +334,19 @@ export function AdminDashboard() {
         }
     };
 
+    const handleDeleteBed = async (bedId) => {
+        if (window.confirm('Are you sure you want to delete this bed? This action cannot be undone.')) {
+            try {
+                await roomApi.deleteBed(bedId);
+                await fetchData();
+                showNotification('Bed deleted successfully!', 'success');
+            } catch (error) {
+                console.error('Error deleting bed:', error);
+                showNotification('Error deleting bed', 'error');
+            }
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -754,6 +767,12 @@ export function AdminDashboard() {
                                                                     className="text-blue-600 hover:text-blue-900 mr-3"
                                                                 >
                                                                     Edit
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteBed(bed.id)}
+                                                                    className="text-red-600 hover:text-red-900"
+                                                                >
+                                                                    Delete
                                                                 </button>
                                                             </td>
                                                         </tr>
