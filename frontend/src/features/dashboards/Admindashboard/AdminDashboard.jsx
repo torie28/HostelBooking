@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { hostelApi, roomApi, genderApi } from '../../../services/api';
+import { hostelApi, roomApi, genderApi, bookingApi } from '../../../services/api';
 import { handleEditRoom, handleUpdateRoom, handleDeleteRoom } from './roomFunctions';
 
 export function AdminDashboard() {
@@ -114,13 +114,27 @@ export function AdminDashboard() {
             setRooms(allRooms);
             setBeds(allBeds);
 
-            // TODO: Fetch students from API when student endpoint is available
-            setStudents([
-                { id: 1, name: 'John Doe', email: 'john@example.com', level: 'Year 3', hostel: 'Boys Hostel A', room: '101', bed: 1 },
-                { id: 2, name: 'Jane Smith', email: 'jane@example.com', level: 'Year 2', hostel: 'Girls Hostel B', room: '201', bed: 3 },
-                { id: 3, name: 'Mike Johnson', email: 'mike@example.com', level: 'Year 4', hostel: 'Boys Hostel A', room: '102', bed: 2 },
-                { id: 4, name: 'Sarah Wilson', email: 'sarah@example.com', level: 'Year 1', hostel: 'Girls Hostel B', room: '202', bed: 1 }
-            ]);
+            // Fetch students from hostel bookings table
+            const bookingsData = await bookingApi.getAll();
+
+            // Transform booking data to match the expected student format
+            const studentsData = bookingsData.map(booking => ({
+                id: booking.id,
+                name: booking.student_name || booking.student?.name || 'Unknown',
+                email: booking.student?.email || '',
+                level: booking.student?.level || booking.student?.level?.name || 'Unknown',
+                hostel: booking.bed?.room?.hostel?.name || 'Unknown',
+                room: booking.room_number || booking.bed?.room?.room_number || 'Unknown',
+                bed: booking.bed?.bed_number || 'Unknown',
+                admission_number: booking.admission_number,
+                academic_year: booking.academic_year,
+                amount: booking.amount,
+                status: booking.status,
+                booking_date: booking.booking_date,
+                control_number: booking.controlnumber
+            }));
+
+            setStudents(studentsData);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
