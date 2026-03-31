@@ -39,6 +39,7 @@ Route::get('/rooms/by-hostel/{hostelId}', [RoomController::class, 'getRoomsByHos
 Route::get('/rooms/available/{hostelId}', [RoomController::class, 'getAvailableRooms']);
 Route::put('/beds/{id}', [RoomController::class, 'updateBed']);
 Route::delete('/beds/{id}', [RoomController::class, 'deleteBed']);
+Route::get('/beds', [RoomController::class, 'getBeds']);
 
 // Hostel Booking routes
 Route::apiResource('hostel-bookings', HostelBookingController::class);
