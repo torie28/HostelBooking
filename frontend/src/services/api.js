@@ -103,8 +103,27 @@ export const genderApi = {
     getAll: () => apiRequest('/genders'),
 };
 
+// Payment API functions
+export const paymentApi = {
+    // Generate control number
+    generateControlNumber: (paymentData) => apiRequest('/payments/generate-control-number', {
+        method: 'POST',
+        body: JSON.stringify(paymentData)
+    }),
+
+    // Check payment status
+    checkStatus: (controlNumber) => apiRequest(`/payments/check-status/${controlNumber}`),
+
+    // Verify payment
+    verifyPayment: (paymentData) => apiRequest('/payments/verify', {
+        method: 'POST',
+        body: JSON.stringify(paymentData)
+    }),
+};
+
 export default {
     hostel: hostelApi,
     room: roomApi,
     gender: genderApi,
+    payment: paymentApi,
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { hostelApi, roomApi } from '../../../services/api';
+import { hostelApi, roomApi, paymentApi } from '../../../services/api';
 
 export function StudentDashboard() {
     const [user, setUser] = useState(null);
@@ -23,6 +23,8 @@ export function StudentDashboard() {
     const [bookingModalData, setBookingModalData] = useState(null);
     const [controlNumberGenerated, setControlNumberGenerated] = useState(false);
     const [studentBooking, setStudentBooking] = useState(null);
+    const [amount, setAmount] = useState('');
+    const [academicYear, setAcademicYear] = useState('');
     const navigate = useNavigate();
 
     // Fetch hostels from database
@@ -118,15 +120,16 @@ export function StudentDashboard() {
 
     // Booking form functions
     const generateControlNumber = () => {
-        const timestamp = Date.now().toString();
-        const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-        setControlNumber(`CTRL${timestamp.slice(-6)}${random}`);
+        // Generate control number starting with 99 + 10 random digits (12 digits total)
+        const controlNumber = '99' + Math.floor(Math.random() * 10000000000).toString().padStart(10, '0');
+        setControlNumber(controlNumber);
+        setControlNumberGenerated(true);
     };
 
     const handleBookingSubmit = async (e) => {
         e.preventDefault();
 
-        if (!selectedHostel || !selectedRoom || !selectedBed || !admissionNumber || !studentName) {
+        if (!selectedHostel || !selectedRoom || !selectedBed || !admissionNumber || !studentName || !amount || !academicYear) {
             alert('Please fill in all required fields');
             return;
         }
@@ -142,6 +145,8 @@ export function StudentDashboard() {
                 room: selectedRoom.room_number,
                 bed: selectedBed,
                 controlNumber,
+                amount,
+                academicYear,
                 status: 'booked', // Initial status is 'booked'
                 timestamp: new Date().toISOString()
             };
@@ -184,13 +189,15 @@ export function StudentDashboard() {
         // Reset control number generation state
         setControlNumberGenerated(false);
         setControlNumber('');
+        // Reset new fields
+        setAmount('');
+        setAcademicYear('');
         // Show booking form
         setShowBookingForm(true);
     };
 
     const handleGenerateControlNumber = () => {
         generateControlNumber();
-        setControlNumberGenerated(true);
     };
 
     const handlePayment = () => {
@@ -834,7 +841,7 @@ export function StudentDashboard() {
                 {/* Booking Summary */}
                 {selectedBed && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg shadow-xl border-2 border-gray-200 max-w-md w-full mx-4">
+                        <div className="bg-white rounded-lg shadow-xl border-2 border-gray-200 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
                             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-t-lg">
                                 <h2 className="text-xl font-bold text-center">Booking Confirmation</h2>
                             </div>
@@ -945,6 +952,41 @@ export function StudentDashboard() {
                                             required
                                         />
                                     </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Amount (TZS) <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={amount}
+                                            onChange={(e) => setAmount(e.target.value)}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-full focus:border-blue-500"
+                                            placeholder="Enter amount"
+                                            min="0"
+                                            step="1000"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Academic Year <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            value={academicYear}
+                                            onChange={(e) => setAcademicYear(e.target.value)}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-full focus:border-blue-500"
+                                            required
+                                        >
+                                            <option value="">Select Academic Year</option>
+                                            <option value="2024/2025">2024/2025</option>
+                                            <option value="2025/2026">2025/2026</option>
+                                            <option value="2026/2027">2026/2027</option>
+                                            <option value="2027/2028">2027/2028</option>
+                                            <option value="2028/2029">2028/2029</option>
+                                        </select>
+                                    </div>
                                 </div>
 
                                 {/* Control Number Display */}
@@ -1032,6 +1074,8 @@ export function StudentDashboard() {
                                     <div className="space-y-1 text-sm text-gray-600">
                                         <p><strong>Student:</strong> {bookingModalData.studentName}</p>
                                         <p><strong>Admission:</strong> {bookingModalData.admissionNumber}</p>
+                                        <p><strong>Amount:</strong> TZS {bookingModalData.amount}</p>
+                                        <p><strong>Academic Year:</strong> {bookingModalData.academicYear}</p>
                                         <p><strong>Hostel:</strong> {bookingModalData.hostel}</p>
                                         <p><strong>Room:</strong> {bookingModalData.room}</p>
                                         <p><strong>Bed:</strong> {bookingModalData.bed}</p>
