@@ -296,4 +296,37 @@ class RoomController extends Controller
             ], 500);
         }
     }
+
+    public function getBeds(Request $request)
+    {
+        $roomId = $request->query('room_id');
+        
+        if (!$roomId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Room ID is required'
+            ], 400);
+        }
+
+        $room = Room::find($roomId);
+        
+        if (!$room) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Room not found'
+            ], 404);
+        }
+
+        $beds = Bed::where('room_id', $roomId)
+            ->with(['activeBooking.student'])
+            ->get();
+
+        // Transform beds to include active_booking field
+        $beds->transform(function ($bed) {
+            $bed->active_booking = $bed->activeBooking;
+            return $bed;
+        });
+
+        return response()->json($beds);
+    }
 }

@@ -73,6 +73,9 @@ export const roomApi = {
     // Get all rooms
     getAll: () => apiRequest('/rooms'),
 
+    // Get beds for a specific room
+    getRoomBeds: (roomId) => apiRequest(`/beds?room_id=${roomId}`),
+
     // Create new room
     create: (roomData) => apiRequest('/rooms', {
         method: 'POST',
@@ -103,8 +106,55 @@ export const genderApi = {
     getAll: () => apiRequest('/genders'),
 };
 
+// Payment API functions
+export const paymentApi = {
+    // Generate control number
+    generateControlNumber: (paymentData) => apiRequest('/payments/generate-control-number', {
+        method: 'POST',
+        body: JSON.stringify(paymentData)
+    }),
+
+    // Check payment status
+    checkStatus: (controlNumber) => apiRequest(`/payments/check-status/${controlNumber}`),
+
+    // Verify payment
+    verifyPayment: (paymentData) => apiRequest('/payments/verify', {
+        method: 'POST',
+        body: JSON.stringify(paymentData)
+    }),
+
+    // Get student payment amount
+    getStudentAmount: (admissionNumber) => apiRequest(`/payment-hostels/student-amount/${admissionNumber}`),
+};
+
+// Booking API functions
+export const bookingApi = {
+    // Create new booking
+    create: (bookingData) => apiRequest('/bookings', {
+        method: 'POST',
+        body: JSON.stringify(bookingData)
+    }),
+
+    // Get booking by control number
+    getByControlNumber: (controlNumber) => apiRequest(`/bookings/control-number/${controlNumber}`),
+
+    // Get bookings by student
+    getByStudent: (studentId) => apiRequest(`/bookings/student/${studentId}`),
+
+    // Update booking status
+    updateStatus: (bookingId, status) => apiRequest(`/bookings/${bookingId}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status })
+    }),
+
+    // Get all bookings
+    getAll: () => apiRequest('/bookings'),
+};
+
 export default {
     hostel: hostelApi,
     room: roomApi,
     gender: genderApi,
+    payment: paymentApi,
+    booking: bookingApi,
 };

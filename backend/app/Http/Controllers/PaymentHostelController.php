@@ -171,4 +171,35 @@ class PaymentHostelController extends Controller
 
         return response()->json($pendingPayments);
     }
+
+    public function getStudentPaymentAmount($admissionNumber)
+    {
+        $student = User::where('admission_number', $admissionNumber)->first();
+        
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Student not found'
+            ], 404);
+        }
+
+        // Get the latest payment for the student
+        $payment = PaymentHostel::where('student_id', $student->id)
+            ->where('status', 'paid')
+            ->orderBy('updated_at', 'desc')
+            ->first();
+
+        if (!$payment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No payment found for student'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'amount' => $payment->amount,
+            'payment' => $payment
+        ]);
+    }
 }

@@ -39,14 +39,23 @@ Route::get('/rooms/by-hostel/{hostelId}', [RoomController::class, 'getRoomsByHos
 Route::get('/rooms/available/{hostelId}', [RoomController::class, 'getAvailableRooms']);
 Route::put('/beds/{id}', [RoomController::class, 'updateBed']);
 Route::delete('/beds/{id}', [RoomController::class, 'deleteBed']);
+Route::get('/beds', [RoomController::class, 'getBeds']);
 
 // Hostel Booking routes
 Route::apiResource('hostel-bookings', HostelBookingController::class);
+
+// Bookings routes (for frontend compatibility)
+Route::post('/bookings', [HostelBookingController::class, 'storeFromFrontend']);
+Route::get('/bookings', [HostelBookingController::class, 'index']);
+Route::get('/bookings/control-number/{controlNumber}', [HostelBookingController::class, 'getByControlNumber']);
+Route::get('/bookings/student/{studentId}', [HostelBookingController::class, 'getByStudent']);
+Route::put('/bookings/{id}/status', [HostelBookingController::class, 'updateStatus']);
 
 // Payment Hostel routes
 Route::apiResource('payment-hostels', PaymentHostelController::class);
 Route::get('/payment-hostels/student/{studentId}', [PaymentHostelController::class, 'getStudentPayments']);
 Route::get('/payment-hostels/pending', [PaymentHostelController::class, 'getPendingPayments']);
+Route::get('/payment-hostels/student-amount/{admissionNumber}', [PaymentHostelController::class, 'getStudentPaymentAmount']);
 
 // Transaction Hostel routes
 Route::apiResource('transaction-hostels', TransactionHostelController::class);
