@@ -73,6 +73,9 @@ export const roomApi = {
     // Get all rooms
     getAll: () => apiRequest('/rooms'),
 
+    // Get beds for a specific room
+    getRoomBeds: (roomId) => apiRequest(`/beds?room_id=${roomId}`),
+
     // Create new room
     create: (roomData) => apiRequest('/rooms', {
         method: 'POST',

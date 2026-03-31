@@ -9,6 +9,7 @@ export function StudentDashboard() {
     const [selectedRoom, setSelectedRoom] = useState(null);
     const [selectedBed, setSelectedBed] = useState(null);
     const [selectedBedForInfo, setSelectedBedForInfo] = useState(null);
+    const [roomBeds, setRoomBeds] = useState([]);
     const [roomSearchTerm, setRoomSearchTerm] = useState('');
     const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'all'
     const [hostels, setHostels] = useState([]);
@@ -46,6 +47,18 @@ export function StudentDashboard() {
         };
 
         return convert(num);
+    };
+
+    // Fetch beds for a specific room
+    const fetchRoomBeds = async (roomId) => {
+        try {
+            const bedsData = await roomApi.getRoomBeds(roomId);
+            setRoomBeds(bedsData);
+        } catch (error) {
+            console.error('Error fetching room beds:', error);
+            // Fallback to empty array if API fails
+            setRoomBeds([]);
+        }
     };
 
     // Fetch hostels from database
@@ -130,13 +143,27 @@ export function StudentDashboard() {
         navigate('/');
     };
 
-    const handleBedSelection = (bedNumber) => {
-        setSelectedBed(bedNumber);
-        setSelectedBedForInfo({
-            bedNumber,
-            roomNumber: selectedRoom.room_number,
-            hostelName: selectedHostel.name
-        });
+    const handleBedSelection = (bedId) => {
+        setSelectedBed(bedId);
+
+        // Find the bed object to get bed details
+        const selectedBedObject = roomBeds.find(bed => bed.id === bedId);
+        if (selectedBedObject) {
+            setSelectedBedForInfo({
+                bedId: bedId,
+                bedNumber: selectedBedObject.bed_number,
+                roomNumber: selectedRoom.room_number,
+                hostelName: selectedHostel.name
+            });
+        } else {
+            // Fallback for generated beds
+            setSelectedBedForInfo({
+                bedId: bedId,
+                bedNumber: bedId,
+                roomNumber: selectedRoom.room_number,
+                hostelName: selectedHostel.name
+            });
+        }
     };
 
     // Booking form functions
@@ -813,6 +840,8 @@ export function StudentDashboard() {
                                                     if (room.status === 'available' || room.status === 'full') {
                                                         setSelectedRoom(room);
                                                         setSelectedBed(null);
+                                                        setRoomBeds([]); // Clear previous beds
+                                                        fetchRoomBeds(room.id); // Fetch beds for this room
                                                     }
                                                 }}
                                                 className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedRoom?.id === room.id
@@ -825,7 +854,7 @@ export function StudentDashboard() {
                                                 <h3 className="font-semibold text-lg">{room.room_number}</h3>
                                                 <div className="text-sm text-gray-600 mt-2">
                                                     <p>Capacity: {room.capacity} beds</p>
-                                                    <p>Occupied: {room.occupied_beds || 0}/{room.capacity}</p>
+                                                    {/* <p>Occupied: {room.occupied_beds || 0}/{room.capacity}</p> */}
                                                     <p>Available: {room.available_beds || room.capacity - (room.occupied_beds || 0)} beds</p>
                                                     <div className="mt-2">
                                                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${room.status === 'available'
@@ -856,7 +885,7 @@ export function StudentDashboard() {
                                             <tr className="bg-gray-50">
                                                 <th className="border border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Room</th>
                                                 <th className="border border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Capacity</th>
-                                                <th className="border border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Occupied</th>
+                                                {/* <th className="border border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Occupied</th> */}
                                                 <th className="border border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Available</th>
                                                 <th className="border border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Status</th>
                                             </tr>
@@ -870,6 +899,8 @@ export function StudentDashboard() {
                                                             if (room.status === 'available' || room.status === 'full') {
                                                                 setSelectedRoom(room);
                                                                 setSelectedBed(null);
+                                                                setRoomBeds([]); // Clear previous beds
+                                                                fetchRoomBeds(room.id); // Fetch beds for this room
                                                             }
                                                         }}
                                                         className={`cursor-pointer transition-colors ${selectedRoom?.id === room.id
@@ -886,7 +917,7 @@ export function StudentDashboard() {
                                                             </div>
                                                         </td>
                                                         <td className="border border-gray-200 px-4 py-3 text-sm">{room.capacity}</td>
-                                                        <td className="border border-gray-200 px-4 py-3 text-sm">{room.occupied_beds || 0}</td>
+                                                        {/* <td className="border border-gray-200 px-4 py-3 text-sm">{room.occupied_beds || 0}</td> */}
                                                         <td className="border border-gray-200 px-4 py-3 text-sm">{room.available_beds || room.capacity - (room.occupied_beds || 0)}</td>
                                                         <td className="border border-gray-200 px-4 py-3 text-sm">
                                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${room.status === 'available'
@@ -915,7 +946,285 @@ export function StudentDashboard() {
                     </div>
                 )}
 
+                {/* Step 5: Bed Selection */}
+                {selectedRoom && (
+                    <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                        <h2 className="text-xl font-semibold mb-4 text-gray-800">5. Select Bed</h2>
+                        {console.log("Selected Room:", selectedRoom)}
+
+                        <div className="mb-4">
+                            <p className="text-sm text-gray-600">
+                                Room <span className="font-semibold">{selectedRoom.room_number}</span> -
+                                <span className="ml-2">
+                                    Available beds: {
+                                        roomBeds.length > 0
+                                            ? roomBeds.filter(bed => bed.status === 'available').length
+                                            : selectedRoom.available_beds || 0
+                                    }/{selectedRoom.capacity || 4}
+                                </span>
+                            </p>
+                        </div>
+
+                        {/* Beds Grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                            {roomBeds.length > 0 ? (
+                                roomBeds.map((bed) => {
+                                    const isSelected = selectedBed === bed.id;
+                                    const isAvailable = bed.status === 'available';
+
+                                    return (
+                                        <button
+                                            key={bed.id}
+                                            onClick={() => isAvailable && handleBedSelection(bed.id)}
+                                            disabled={!isAvailable}
+                                            className={`p-4 rounded-lg border-2 transition-all ${isSelected
+                                                ? 'border-green-500 bg-green-50'
+                                                : !isAvailable
+                                                    ? 'border-red-300 bg-red-50 cursor-not-allowed'
+                                                    : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            <div className="text-center">
+                                                <div className={`text-2xl mb-1 ${!isAvailable ? 'text-red-500' : isSelected ? 'text-green-600' : 'text-gray-400'}`}>
+                                                    {!isAvailable ? '❌' : isSelected ? '✓' : '🛏️'}
+                                                </div>
+                                                <div className="font-medium text-sm">Bed {bed.bed_number}</div>
+                                                <div className={`text-xs mt-1 ${!isAvailable ? 'text-red-600' : 'text-green-600'}`}>
+                                                    {!isAvailable ? 'Occupied' : 'Available'}
+                                                </div>
+                                            </div>
+                                        </button>
+                                    );
+                                })
+                            ) : (
+                                // Fallback to generated beds if no data from database
+                                Array.from({ length: selectedRoom.capacity || 4 }, (_, index) => {
+                                    const bedNumber = index + 1;
+                                    const availableBeds = selectedRoom.available_beds || 0;
+                                    const isOccupied = bedNumber > availableBeds;
+                                    const isSelected = selectedBed === bedNumber;
+
+                                    return (
+                                        <button
+                                            key={bedNumber}
+                                            onClick={() => !isOccupied && handleBedSelection(bedNumber)}
+                                            disabled={isOccupied}
+                                            className={`p-4 rounded-lg border-2 transition-all ${isSelected
+                                                ? 'border-green-500 bg-green-50'
+                                                : isOccupied
+                                                    ? 'border-red-300 bg-red-50 cursor-not-allowed'
+                                                    : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            <div className="text-center">
+                                                <div className={`text-2xl mb-1 ${isOccupied ? 'text-red-500' : isSelected ? 'text-green-600' : 'text-gray-400'}`}>
+                                                    {isOccupied ? '❌' : isSelected ? '✓' : '🛏️'}
+                                                </div>
+                                                <div className="font-medium text-sm">Bed {bedNumber}</div>
+                                                <div className={`text-xs mt-1 ${isOccupied ? 'text-red-600' : 'text-green-600'}`}>
+                                                    {isOccupied ? 'Occupied' : 'Available'}
+                                                </div>
+                                            </div>
+                                        </button>
+                                    );
+                                })
+                            )}
+                        </div>
+
+                        {/* Selected Bed Info */}
+                        {selectedBed && selectedBedForInfo && (
+                            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-semibold text-green-800">
+                                            Selected: Bed {selectedBedForInfo.bedNumber} in Room {selectedBedForInfo.roomNumber}
+                                        </p>
+                                        <p className="text-sm text-green-600 mt-1">
+                                            {selectedBedForInfo.hostelName} - {selectedHostel.gender === 'male' ? 'Boys Hostel' : 'Girls Hostel'}
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={handleConfirmBooking}
+                                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                                    >
+                                        Book Now
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* No Bed Selected Message */}
+                        {!selectedBed && (
+                            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <div className="flex items-center">
+                                    <svg className="h-5 w-5 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                    <p className="text-yellow-700">Please select an available bed to proceed with booking.</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Booking Form Modal */}
+                {showBookingForm && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900">Complete Your Booking</h2>
+                                <button
+                                    onClick={() => {
+                                        setShowBookingForm(false);
+                                        setSelectedBed(null);
+                                        setSelectedBedForInfo(null);
+                                    }}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {/* Booking Summary */}
+                            {selectedBedForInfo && (
+                                <div className="bg-gray-50 p-4 rounded-lg mb-6">
+                                    <h3 className="font-semibold text-gray-900 mb-3">Booking Details</h3>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <p className="text-sm text-gray-600">Hostel</p>
+                                            <p className="font-medium">{selectedBedForInfo.hostelName}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-600">Room</p>
+                                            <p className="font-medium">{selectedBedForInfo.roomNumber}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-600">Bed</p>
+                                            <p className="font-medium">{selectedBedForInfo.bedNumber}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Booking Form */}
+                            <form onSubmit={handleBookingSubmit} className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Student Name *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={studentName}
+                                            onChange={(e) => setStudentName(e.target.value)}
+                                            required
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Enter your full name"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Admission Number *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={admissionNumber}
+                                            onChange={(e) => setAdmissionNumber(e.target.value)}
+                                            required
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Enter admission number"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Academic Year *
+                                        </label>
+                                        <select
+                                            value={academicYear}
+                                            onChange={(e) => setAcademicYear(e.target.value)}
+                                            required
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="">Select Academic Year</option>
+                                            <option value="2024/2025">2024/2025</option>
+                                            <option value="2025/2026">2025/2026</option>
+                                            <option value="2026/2027">2026/2027</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Amount (TZS) *
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={amount}
+                                            onChange={(e) => setAmount(e.target.value)}
+                                            required
+                                            min="0"
+                                            step="0.01"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Enter amount"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Control Number *
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={controlNumber}
+                                            onChange={(e) => setControlNumber(e.target.value)}
+                                            required
+                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Enter or generate control number"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleGenerateControlNumber}
+                                            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors"
+                                        >
+                                            Generate
+                                        </button>
+                                    </div>
+                                    {controlNumberGenerated && (
+                                        <p className="text-xs text-green-600 mt-1">Control number generated successfully!</p>
+                                    )}
+                                </div>
+
+                                <div className="flex justify-end gap-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowBookingForm(false);
+                                            setSelectedBed(null);
+                                            setSelectedBedForInfo(null);
+                                        }}
+                                        className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isLoading}
+                                        className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isLoading ? 'Processing...' : 'Complete Booking'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Booking Confirmation Modal */}
                 {showBookingModal && bookingModalData && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
