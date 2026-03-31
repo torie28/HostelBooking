@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { hostelApi, roomApi, paymentApi } from '../../../services/api';
+import { hostelApi, roomApi, paymentApi, bookingApi } from '../../../services/api';
 
 export function StudentDashboard() {
     const [user, setUser] = useState(null);
@@ -137,8 +137,27 @@ export function StudentDashboard() {
         setIsLoading(true);
 
         try {
-            // Here you would typically make an API call to save the booking
+            // Prepare booking data for database
             const bookingData = {
+                hostel_id: selectedHostel.id,
+                room_number: selectedRoom.room_number,
+                bed_id: selectedBed, // Assuming selectedBed contains the bed ID
+                status: 'active', // Using 'active' as per database enum
+                academic_year: academicYear,
+                student_name: studentName,
+                admission_number: admissionNumber,
+                amount: parseFloat(amount),
+                controlnumber: controlNumber,
+                booking_date: new Date().toISOString().split('T')[0] // Format as YYYY-MM-DD
+            };
+
+            console.log('Booking data:', bookingData);
+
+            // Save booking to database via API
+            const savedBooking = await bookingApi.create(bookingData);
+
+            // Prepare display data (keeping existing structure for frontend)
+            const displayData = {
                 studentName,
                 admissionNumber,
                 hostel: selectedHostel.name,
@@ -147,22 +166,18 @@ export function StudentDashboard() {
                 controlNumber,
                 amount,
                 academicYear,
-                status: 'booked', // Initial status is 'booked'
-                timestamp: new Date().toISOString()
+                status: 'booked', // Keep 'booked' for frontend display
+                timestamp: new Date().toISOString(),
+                id: savedBooking.id // Include database ID
             };
 
-            console.log('Booking data:', bookingData);
-
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
             // Set modal data and show modal
-            setBookingModalData(bookingData);
+            setBookingModalData(displayData);
             setShowBookingModal(true);
 
             // Save booking to student state and localStorage
-            setStudentBooking(bookingData);
-            localStorage.setItem('studentBooking', JSON.stringify(bookingData));
+            setStudentBooking(displayData);
+            localStorage.setItem('studentBooking', JSON.stringify(displayData));
 
             // Generate a new control number for next booking
             generateControlNumber();

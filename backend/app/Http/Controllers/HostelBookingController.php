@@ -171,6 +171,183 @@ class HostelBookingController extends Controller
         }
     }
 
+    public function storeFromFrontend(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'hostel_id' => 'required|exists:hostels,id',
+            'room_number' => 'required|string',
+            'bed_id' => 'required|exists:beds,id',
+            'status' => 'required|in:active,completed,cancelled',
+            'academic_year' => 'required|string',
+            'student_name' => 'required|string',
+            'admission_number' => 'required|string',
+            'amount' => 'required|numeric|min:0',
+            'controlnumber' => 'required|string|unique:hostel_bookings,controlnumber',
+            'booking_date' => 'required|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            // Check if bed is already occupied
+            $existingBooking = HostelBooking::where('bed_id', $request->bed_id)
+                ->where('status', 'active')
+                ->first();
+
+            if ($existingBooking) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bed is already occupied'
+                ], 400);
+            }
+
+            $booking = HostelBooking::create([
+                'hostel_id' => $request->hostel_id,
+                'room_number' => $request->room_number,
+                'bed_id' => $request->bed_id,
+                'status' => $request->status,
+                'academic_year' => $request->academic_year,
+                'student_name' => $request->student_name,
+                'admission_number' => $request->admission_number,
+                'amount' => $request->amount,
+                'controlnumber' => $request->controlnumber,
+                'booking_date' => $request->booking_date,
+            ]);
+
+            // Update bed status to occupied
+            $bed = Bed::find($request->bed_id);
+            $bed->status = 'occupied';
+            $bed->save();
+
+            // Check if room is now full and update room status
+            $room = $bed->room;
+            $totalBeds = $room->total_beds;
+            $occupiedBeds = Bed::where('room_id', $room->id)
+                ->where('status', 'occupied')
+                ->count();
+
+            if ($occupiedBeds >= $totalBeds) {
+                $room->status = 'full';
+                $room->save();
+            } else if ($room->status === 'full' && $occupiedBeds < $totalBeds) {
+                // If room was marked as full but now has available beds
+                $room->status = 'available';
+                $room->save();
+            }
+
+            return response()->json([
+                'id' => $booking->id,
+                'success' => true,
+                'message' => 'Booking created successfully',
+                'booking' => $booking->load(['bed.room.hostel'])
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getByControlNumber($controlNumber)
+    {
+        $booking = HostelBooking::with(['bed.room.hostel'])
+            ->where('controlnumber', $controlNumber)
+            ->first();
+        
+        if (!$booking) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking not found'
+            ], 404);
+        }
+
+        return response()->json($booking);
+    }
+
+    public function getByStudent($studentId)
+    {
+        $bookings = HostelBooking::with(['bed.room.hostel'])
+            ->where('admission_number', $studentId)
+            ->get();
+
+        return response()->json($bookings);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $booking = HostelBooking::find($id);
+        
+        if (!$booking) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking not found'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|in:active,completed,cancelled',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $oldStatus = $booking->status;
+            $booking->update($request->only(['status']));
+
+            // Update bed status based on booking status
+            if ($oldStatus !== $request->status) {
+                $bed = Bed::find($booking->bed_id);
+                if ($request->status === 'cancelled' || $request->status === 'completed') {
+                    $bed->status = 'available';
+                } else if ($request->status === 'active') {
+                    $bed->status = 'occupied';
+                }
+                $bed->save();
+
+                // Check and update room status based on current bed occupancy
+                $room = $bed->room;
+                $totalBeds = $room->total_beds;
+                $occupiedBeds = Bed::where('room_id', $room->id)
+                    ->where('status', 'occupied')
+                    ->count();
+
+                if ($occupiedBeds >= $totalBeds) {
+                    $room->status = 'full';
+                    $room->save();
+                } else {
+                    $room->status = 'available';
+                    $room->save();
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking status updated successfully',
+                'booking' => $booking->load(['bed.room.hostel'])
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Update failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function destroy($id)
     {
         $booking = HostelBooking::find($id);

@@ -121,9 +121,34 @@ export const paymentApi = {
     }),
 };
 
+// Booking API functions
+export const bookingApi = {
+    // Create new booking
+    create: (bookingData) => apiRequest('/bookings', {
+        method: 'POST',
+        body: JSON.stringify(bookingData)
+    }),
+
+    // Get booking by control number
+    getByControlNumber: (controlNumber) => apiRequest(`/bookings/control-number/${controlNumber}`),
+
+    // Get bookings by student
+    getByStudent: (studentId) => apiRequest(`/bookings/student/${studentId}`),
+
+    // Update booking status
+    updateStatus: (bookingId, status) => apiRequest(`/bookings/${bookingId}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status })
+    }),
+
+    // Get all bookings
+    getAll: () => apiRequest('/bookings'),
+};
+
 export default {
     hostel: hostelApi,
     room: roomApi,
     gender: genderApi,
     payment: paymentApi,
+    booking: bookingApi,
 };

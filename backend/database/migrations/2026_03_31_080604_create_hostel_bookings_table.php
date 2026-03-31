@@ -13,10 +13,15 @@ return new class extends Migration
     {
         Schema::create('hostel_bookings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('student_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('hostel_id')->constrained()->onDelete('cascade');
+            $table->string('room_number');
             $table->foreignId('bed_id')->constrained()->onDelete('cascade');
             $table->enum('status', ['active', 'completed', 'cancelled']);
             $table->string('academic_year');
+            $table->string('student_name');
+            $table->string('admission_number');
+            $table->decimal('amount', 10, 2);
+            $table->string('controlnumber')->unique();
             $table->date('booking_date');
             $table->timestamps();
         });

@@ -43,6 +43,13 @@ Route::delete('/beds/{id}', [RoomController::class, 'deleteBed']);
 // Hostel Booking routes
 Route::apiResource('hostel-bookings', HostelBookingController::class);
 
+// Bookings routes (for frontend compatibility)
+Route::post('/bookings', [HostelBookingController::class, 'storeFromFrontend']);
+Route::get('/bookings', [HostelBookingController::class, 'index']);
+Route::get('/bookings/control-number/{controlNumber}', [HostelBookingController::class, 'getByControlNumber']);
+Route::get('/bookings/student/{studentId}', [HostelBookingController::class, 'getByStudent']);
+Route::put('/bookings/{id}/status', [HostelBookingController::class, 'updateStatus']);
+
 // Payment Hostel routes
 Route::apiResource('payment-hostels', PaymentHostelController::class);
 Route::get('/payment-hostels/student/{studentId}', [PaymentHostelController::class, 'getStudentPayments']);
