@@ -119,6 +119,9 @@ export const paymentApi = {
         method: 'POST',
         body: JSON.stringify(paymentData)
     }),
+
+    // Get student payment amount
+    getStudentAmount: (admissionNumber) => apiRequest(`/payment-hostels/student-amount/${admissionNumber}`),
 };
 
 // Booking API functions

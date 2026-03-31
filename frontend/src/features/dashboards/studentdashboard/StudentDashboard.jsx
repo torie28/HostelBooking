@@ -27,6 +27,27 @@ export function StudentDashboard() {
     const [academicYear, setAcademicYear] = useState('');
     const navigate = useNavigate();
 
+    // Helper function to convert numbers to words
+    const numberToWords = (num) => {
+        const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+        const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+        const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+
+        if (num === 0) return 'Zero';
+
+        const convert = (n) => {
+            if (n < 10) return ones[n];
+            if (n < 20) return teens[n - 10];
+            if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : '');
+            if (n < 1000) return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + convert(n % 100) : '');
+            if (n < 1000000) return convert(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + convert(n % 1000) : '');
+            if (n < 1000000000) return convert(Math.floor(n / 1000000)) + ' Million' + (n % 1000000 ? ' ' + convert(n % 1000000) : '');
+            return convert(Math.floor(n / 1000000000)) + ' Billion' + (n % 1000000000 ? ' ' + convert(n % 1000000000) : '');
+        };
+
+        return convert(num);
+    };
+
     // Fetch hostels from database
     const fetchHostels = async () => {
         try {
@@ -215,22 +236,222 @@ export function StudentDashboard() {
         generateControlNumber();
     };
 
-    const handlePayment = () => {
+    const handlePrintReceipt = async () => {
         if (!studentBooking) return;
 
-        // Update the booking status to 'paid'
-        const updatedBooking = {
-            ...studentBooking,
-            status: 'paid',
-            paymentTimestamp: new Date().toISOString()
-        };
+        // Fetch student's actual payment amount from database
+        let paymentAmount = studentBooking.amount;
+        try {
+            const paymentResponse = await paymentApi.getStudentAmount(studentBooking.admissionNumber);
+            if (paymentResponse.success) {
+                paymentAmount = paymentResponse.amount;
+            }
+        } catch (error) {
+            console.error('Error fetching payment amount:', error);
+            // Use booking amount if API fails
+        }
 
-        // Update state and localStorage
-        setStudentBooking(updatedBooking);
-        localStorage.setItem('studentBooking', JSON.stringify(updatedBooking));
+        // Create a classic printable receipt matching ATC format
+        const receiptContent = `
+            <html>
+                <head>
+                    <title>ATC - Exchequer Receipts</title>
+                    <style>
+                        body { 
+                            font-family: 'Courier New', monospace; 
+                            padding: 15px; 
+                            margin: 0;
+                            font-size: 11px;
+                            line-height: 1.2;
+                            background: #fff;
+                        }
+                        .receipt-container {
+                            max-width: 400px;
+                            margin: 0 auto;
+                            border: 2px solid #000;
+                            padding: 20px;
+                            background: #fff9f0;
+                        }
+                        .header { 
+                            text-align: center; 
+                            margin-bottom: 15px; 
+                            border-bottom: 3px double #000;
+                            padding-bottom: 10px;
+                        }
+                        .header h1 { 
+                            margin: 5px 0;
+                            font-size: 16px;
+                            font-weight: bold;
+                            text-transform: uppercase;
+                            letter-spacing: 1px;
+                        }
+                        .header p { 
+                            margin: 2px 0;
+                            font-size: 12px;
+                            font-weight: bold;
+                        }
+                        .receipt-details { 
+                            margin: 10px 0; 
+                        }
+                        .receipt-details p { 
+                            margin: 3px 0; 
+                            line-height: 1.1;
+                        }
+                        .items-section {
+                            margin: 15px 0;
+                            border: 1px solid #666;
+                            padding: 10px;
+                        }
+                        .items-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 10px 0;
+                        }
+                        .items-table th {
+                            text-align: left;
+                            padding: 5px;
+                            border-bottom: 2px solid #000;
+                            font-weight: bold;
+                            font-size: 10px;
+                            text-transform: uppercase;
+                        }
+                        .items-table td {
+                            padding: 5px;
+                            font-size: 10px;
+                            border-bottom: 1px dashed #ccc;
+                        }
+                        .total-row {
+                            font-weight: bold;
+                            border-top: 2px solid #000;
+                            border-bottom: 2px solid #000;
+                            background: #f0f0f0;
+                        }
+                        .total-row td {
+                            font-size: 11px;
+                            padding: 8px 5px;
+                        }
+                        .footer { 
+                            margin-top: 15px; 
+                            text-align: center;
+                            border-top: 2px solid #000;
+                            padding-top: 10px;
+                        }
+                        .footer p {
+                            margin: 2px 0;
+                            font-size: 9px;
+                            font-style: italic;
+                        }
+                        .watermark {
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%) rotate(-45deg);
+                            font-size: 72px;
+                            color: rgba(0,0,0,0.05);
+                            font-weight: bold;
+                            pointer-events: none;
+                        }
+                        .receipt-number {
+                            font-size: 14px;
+                            font-weight: bold;
+                            text-decoration: underline;
+                        }
+                        .amount-section {
+                            background: #f8f8f8;
+                            padding: 10px;
+                            border: 1px solid #ddd;
+                            margin: 10px 0;
+                        }
+                        .control-section {
+                            border: 2px solid #000;
+                            padding: 8px;
+                            margin: 10px 0;
+                            background: #ffffcc;
+                        }
+                        @media print {
+                            body { padding: 0; }
+                            .receipt-container { 
+                                margin: 0; 
+                                border: none;
+                                box-shadow: none;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="receipt-container">
+                        <div class="watermark">PAID</div>
+                        
+                        <div class="header">
+                            <h1>ATC - Arusha Technical College</h1>
+                            <p>Exchequer Receipts</p>
+                            <p style="font-size: 9px; margin-top: 5px;">Official Government Receipt</p>
+                        </div>
+                        
+                        <div class="receipt-details">
+                            <p><strong>Receipt No:</strong> <span class="receipt-number">${studentBooking.controlNumber}</span></p>
+                            <p><strong>Received from:</strong> ${studentBooking.studentName}</p>
+                            <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                        </div>
 
-        // Show success message
-        alert('Payment successful! Your booking is now confirmed.');
+                        <div class="amount-section">
+                            <p><strong>Amount:</strong> ${paymentAmount.toLocaleString()}.00 TZS</p>
+                            <p><strong>Amount In Words:</strong> ${numberToWords(paymentAmount)} Tanzanian Shillings Only</p>
+                            <p><strong>Outstanding Balance:</strong> 0.00 TZS</p>
+                        </div>
+
+                        <div class="items-section">
+                            <table class="items-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item Description</th>
+                                        <th style="text-align: right;">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Hostel Booking Fee</td>
+                                        <td style="text-align: right;">${paymentAmount.toLocaleString()}.00</td>
+                                    </tr>
+                                    <tr class="total-row">
+                                        <td><strong>Total Billed Amount</strong></td>
+                                        <td style="text-align: right;"><strong>${paymentAmount.toLocaleString()}.00</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="control-section">
+                            <p><strong>Bill Reference:</strong> ${studentBooking.admissionNumber}</p>
+                            <p><strong>Payment Control No:</strong> ${studentBooking.controlNumber}</p>
+                            <p><strong>Academic Year:</strong> ${studentBooking.academicYear}</p>
+                        </div>
+
+                        <div class="receipt-details">
+                            <p><strong>Hostel:</strong> ${studentBooking.hostel}</p>
+                            <p><strong>Room:</strong> ${studentBooking.room}</p>
+                            <p><strong>Bed:</strong> ${studentBooking.bed}</p>
+                        </div>
+
+                        <div class="footer">
+                            <p>This is an official government receipt - Do not alter</p>
+                            <p>Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</p>
+                            <p style="margin-top: 10px; border-top: 1px solid #ccc; padding-top: 5px; text-align: center;">
+                                _________________________<br>
+                                Authorized Signature
+                            </p>
+                        </div>
+                    </div>
+                </body>
+            </html>
+        `;
+
+        // Open print dialog
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(receiptContent);
+        printWindow.document.close();
+        printWindow.print();
+        printWindow.close();
     };
 
     // Get all rooms from all hostels based on gender filter
@@ -313,10 +534,10 @@ export function StudentDashboard() {
                                         </span>
                                         {studentBooking.status === 'booked' && (
                                             <button
-                                                onClick={handlePayment}
-                                                className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-full transition-colors"
+                                                onClick={handlePrintReceipt}
+                                                className="text-xs bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded-full transition-colors"
                                             >
-                                                Pay Now
+                                                Print Receipt
                                             </button>
                                         )}
                                     </div>
@@ -595,508 +816,158 @@ export function StudentDashboard() {
                                                     }
                                                 }}
                                                 className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedRoom?.id === room.id
-                                                    ? 'border-blue-500 bg-blue-50'
+                                                    ? 'border-green-500 bg-green-50'
                                                     : room.status === 'available'
                                                         ? 'border-gray-300 hover:border-gray-400'
-                                                        : room.status === 'full'
-                                                            ? 'border-red-300 bg-red-50 cursor-not-allowed'
-                                                            : 'border-red-300 bg-red-50 cursor-not-allowed'
+                                                        : 'border-red-300 bg-red-50 cursor-not-allowed'
                                                     }`}
                                             >
-                                                <h3 className="font-semibold">Room {room.room_number}</h3>
-                                                <div className="text-sm mt-2">
-                                                    <p className={`font-medium ${room.status === 'available' ? 'text-green-600' : room.status === 'full' ? 'text-red-600' : 'text-red-600'}`}>
-                                                        Status: {room.status === 'available' ? 'Available' : room.status === 'full' ? 'Full' : 'Occupied'}
-                                                    </p>
-                                                    <p className="text-gray-600">Available Beds: {room.available_beds || 0}/{room.total_beds || 4}</p>
+                                                <h3 className="font-semibold text-lg">{room.room_number}</h3>
+                                                <div className="text-sm text-gray-600 mt-2">
+                                                    <p>Capacity: {room.capacity} beds</p>
+                                                    <p>Occupied: {room.occupied_beds || 0}/{room.capacity}</p>
+                                                    <p>Available: {room.available_beds || room.capacity - (room.occupied_beds || 0)} beds</p>
+                                                    <div className="mt-2">
+                                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${room.status === 'available'
+                                                            ? 'bg-green-100 text-green-800'
+                                                            : room.status === 'full'
+                                                                ? 'bg-red-100 text-red-800'
+                                                                : 'bg-yellow-100 text-yellow-800'
+                                                            }`}>
+                                                            {room.status === 'available' ? '✓ Available' : room.status === 'full' ? '✗ Full' : '⚠ Maintenance'}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))
                                     ) : (
                                         <div className="col-span-full text-center py-8">
-                                            <p className="text-gray-500">No rooms found matching "{roomSearchTerm}"</p>
-                                            <button
-                                                onClick={() => setRoomSearchTerm('')}
-                                                className="mt-2 text-blue-600 hover:text-blue-800 underline"
-                                            >
-                                                Clear search
-                                            </button>
+                                            <p className="text-gray-500">No rooms available matching "{roomSearchTerm}"</p>
                                         </div>
                                     )}
                                 </div>
                             </>
                         ) : (
-                            /* All Rooms View */
-                            <div className="all-rooms-view">
-                                {/* Search Filter for All Rooms */}
-                                <div className="mb-6">
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            placeholder="Search all rooms by number (e.g., 101, 102)..."
-                                            value={roomSearchTerm}
-                                            onChange={(e) => {
-                                                setRoomSearchTerm(e.target.value);
-                                                setSelectedRoom(null);
-                                                setSelectedBed(null);
-                                            }}
-                                            className="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        />
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 20 20">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                            </svg>
-                                        </div>
-                                        {roomSearchTerm && (
-                                            <button
-                                                onClick={() => {
-                                                    setRoomSearchTerm('');
-                                                    setSelectedRoom(null);
-                                                    setSelectedBed(null);
-                                                }}
-                                                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                            >
-                                                <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
-                                        )}
-                                    </div>
-                                    {roomSearchTerm && (
-                                        <p className="mt-2 text-sm text-gray-600">
-                                            Found {allFilteredRooms.length} room{allFilteredRooms.length !== 1 ? 's' : ''} matching "{roomSearchTerm}"
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* All Rooms Table */}
+                            <>
+                                {/* All Rooms View */}
                                 <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Room Number
-                                                </th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Hostel
-                                                </th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Status
-                                                </th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Available Beds
-                                                </th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Total Beds
-                                                </th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Action
-                                                </th>
+                                    <table className="min-w-full border-collapse">
+                                        <thead>
+                                            <tr className="bg-gray-50">
+                                                <th className="border border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Room</th>
+                                                <th className="border border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Capacity</th>
+                                                <th className="border border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Occupied</th>
+                                                <th className="border border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Available</th>
+                                                <th className="border border-gray-200 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
                                             {allFilteredRooms.length > 0 ? (
                                                 allFilteredRooms.map((room) => (
-                                                    <tr key={room.id} className="hover:bg-gray-50">
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                            {room.room_number}
+                                                    <tr
+                                                        key={room.id}
+                                                        onClick={() => {
+                                                            if (room.status === 'available' || room.status === 'full') {
+                                                                setSelectedRoom(room);
+                                                                setSelectedBed(null);
+                                                            }
+                                                        }}
+                                                        className={`cursor-pointer transition-colors ${selectedRoom?.id === room.id
+                                                            ? 'bg-green-50'
+                                                            : 'hover:bg-gray-50'
+                                                            }`}
+                                                    >
+                                                        <td className="border border-gray-200 px-4 py-3 text-sm">
+                                                            <div className="flex items-center">
+                                                                <span className="font-medium">{room.room_number}</span>
+                                                                {selectedRoom?.id === room.id && (
+                                                                    <span className="ml-2 text-green-600">✓</span>
+                                                                )}
+                                                            </div>
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                            {room.hostelName}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                        <td className="border border-gray-200 px-4 py-3 text-sm">{room.capacity}</td>
+                                                        <td className="border border-gray-200 px-4 py-3 text-sm">{room.occupied_beds || 0}</td>
+                                                        <td className="border border-gray-200 px-4 py-3 text-sm">{room.available_beds || room.capacity - (room.occupied_beds || 0)}</td>
+                                                        <td className="border border-gray-200 px-4 py-3 text-sm">
                                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${room.status === 'available'
                                                                 ? 'bg-green-100 text-green-800'
                                                                 : room.status === 'full'
                                                                     ? 'bg-red-100 text-red-800'
-                                                                    : 'bg-red-100 text-red-800'
+                                                                    : 'bg-yellow-100 text-yellow-800'
                                                                 }`}>
-                                                                {room.status === 'available' ? 'Available' : room.status === 'full' ? 'Full' : 'Occupied'}
+                                                                {room.status === 'available' ? '✓ Available' : room.status === 'full' ? '✗ Full' : '⚠ Maintenance'}
                                                             </span>
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                            {room.available_beds}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                            4
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                            <button
-                                                                onClick={() => {
-                                                                    if (room.status === 'available' || room.status === 'full') {
-                                                                        setSelectedRoom(room);
-                                                                        setSelectedHostel(hostels.find(h => h.id === room.hostelId));
-                                                                        setSelectedBed(null);
-                                                                        // Scroll to bed selection section
-                                                                        setTimeout(() => {
-                                                                            const bedSection = document.getElementById('bed-selection-section');
-                                                                            if (bedSection) {
-                                                                                bedSection.scrollIntoView({ behavior: 'smooth' });
-                                                                            }
-                                                                        }, 100);
-                                                                    }
-                                                                }}
-                                                                disabled={room.status !== 'available' && room.status !== 'full'}
-                                                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${room.status === 'available'
-                                                                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                                                    : room.status === 'full'
-                                                                        ? 'bg-orange-600 hover:bg-orange-700 text-white'
-                                                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                                                    }`}
-                                                            >
-                                                                {room.status === 'available' ? 'View Available Beds' : room.status === 'full' ? 'View Bed Info' : 'Occupied'}
-                                                            </button>
                                                         </td>
                                                     </tr>
                                                 ))
                                             ) : (
                                                 <tr>
-                                                    <td colSpan="6" className="px-6 py-8 text-center">
-                                                        <p className="text-gray-500">No rooms found matching "{roomSearchTerm}"</p>
-                                                        <button
-                                                            onClick={() => setRoomSearchTerm('')}
-                                                            className="mt-2 text-blue-600 hover:text-blue-800 underline"
-                                                        >
-                                                            Clear search
-                                                        </button>
+                                                    <td colSpan="5" className="border border-gray-200 px-4 py-8 text-center text-gray-500">
+                                                        No rooms available matching "{roomSearchTerm}"
                                                     </td>
                                                 </tr>
                                             )}
                                         </tbody>
                                     </table>
                                 </div>
-
-                                {/* Summary Statistics */}
-                                <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                                    <div className="bg-blue-50 p-4 rounded-lg">
-                                        <h3 className="text-sm font-medium text-blue-800">Total Rooms</h3>
-                                        <p className="text-2xl font-bold text-blue-900">{getAllRooms().length}</p>
-                                    </div>
-                                    <div className="bg-green-50 p-4 rounded-lg">
-                                        <h3 className="text-sm font-medium text-green-800">Available Rooms</h3>
-                                        <p className="text-2xl font-bold text-green-900">
-                                            {getAllRooms().filter(room => room.status === 'available').length}
-                                        </p>
-                                    </div>
-                                    <div className="bg-orange-50 p-4 rounded-lg">
-                                        <h3 className="text-sm font-medium text-orange-800">Full Rooms</h3>
-                                        <p className="text-2xl font-bold text-orange-900">
-                                            {getAllRooms().filter(room => room.status === 'full').length}
-                                        </p>
-                                    </div>
-                                    <div className="bg-red-50 p-4 rounded-lg">
-                                        <h3 className="text-sm font-medium text-red-800">Occupied Rooms</h3>
-                                        <p className="text-2xl font-bold text-red-900">
-                                            {getAllRooms().filter(room => room.status === 'occupied').length}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+                            </>
                         )}
-                    </div>
-                )}
-
-                {/* Step 5: Bed Selection */}
-                {selectedRoom && (selectedRoom.status === 'available' || selectedRoom.status === 'full') && (
-                    <div id="bed-selection-section" className="bg-white rounded-lg shadow-md p-6 mb-8">
-                        <h2 className="text-xl font-semibold mb-4 text-gray-800">5. Bed Information</h2>
-                        {selectedHostel.status === 'active' ? (
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                                <p className="text-gray-600 mb-4">Room {selectedRoom.room_number} - Bed Status:</p>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {selectedRoom.beds && selectedRoom.beds.map((bed) => {
-                                        const isRoomFull = selectedRoom.status === 'full';
-                                        const isBedAvailable = !isRoomFull && bed.status === 'available';
-                                        const bookingInfo = bed.active_booking && bed.active_booking[0];
-                                        return (
-                                            <button
-                                                key={bed.id}
-                                                onClick={() => isBedAvailable && handleBedSelection(bed.bed_number)}
-                                                disabled={!isBedAvailable}
-                                                className={`p-4 rounded-lg border-2 transition-all ${selectedBed === bed.bed_number
-                                                    ? 'border-green-500 bg-green-50'
-                                                    : isBedAvailable
-                                                        ? 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                                                        : 'border-red-300 bg-red-50 cursor-not-allowed'
-                                                    }`}
-                                            >
-                                                <div className="text-center">
-                                                    <div className="text-2xl mb-2">🛏️</div>
-                                                    <div className="font-medium">Bed {bed.bed_number}</div>
-                                                    <div className={`text-sm ${isBedAvailable ? 'text-green-600' : 'text-red-600'
-                                                        }`}>
-                                                        {isBedAvailable ? 'Available' :
-                                                            isRoomFull ? 'Taken' :
-                                                                bookingInfo ? `Booked by ${bookingInfo.student?.name || 'Student'}` : 'Occupied'}
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                {selectedRoom.status === 'full' && (
-                                    <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                        <p className="text-red-700 text-sm">This room is currently full (4/4 beds occupied). No beds available for booking.</p>
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                                <p className="text-red-700">
-                                    {selectedHostel.status === 'maintenance' ?
-                                        '🔧 Bed selection is not available. This hostel is currently under maintenance.' :
-                                        '✗ Bed selection is not available. This hostel is currently inactive.'
-                                    }
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Booking Summary */}
-                {selectedBed && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg shadow-xl border-2 border-gray-200 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-                            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-t-lg">
-                                <h2 className="text-xl font-bold text-center">Booking Confirmation</h2>
-                            </div>
-                            <div className="p-6">
-                                <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-gray-600 font-medium"> Student:</span>
-                                            <span className="font-semibold text-gray-900">{user?.name || user?.email || 'Student'}</span>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-gray-600 font-medium"> Hostel:</span>
-                                            <span className="font-semibold text-gray-900">{selectedHostel.name}</span>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-gray-600 font-medium"> Room:</span>
-                                            <span className="font-semibold text-gray-900">{selectedRoom.room_number}</span>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-gray-600 font-medium">Bed:</span>
-                                            <span className="font-semibold text-gray-900">{selectedBed}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={() => setSelectedBed(null)}
-                                        className="flex-1 px-4 py-2 bg-black/60 hover:bg-black/60 text-white rounded-full font-medium transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={() => setShowBookingForm(true)}
-                                        className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full font-semibold transition-all transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
-                                    >
-                                        Proceed to Booking
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 )}
 
                 {/* Booking Form Modal */}
-                {showBookingForm && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 rounded-xl">
-                                <div className="flex justify-between items-center">
-                                    <h2 className="text-xl font-bold">Complete Your Booking</h2>
-                                    <button
-                                        onClick={() => setShowBookingForm(false)}
-                                        className="text-white hover:text-gray-200 transition-colors"
-                                    >
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
+                {showBookingModal && bookingModalData && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+                            <div className="text-center mb-6">
+                                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                                    <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h2>
+                                <p className="text-gray-600">Your hostel booking has been successfully completed.</p>
+                            </div>
+
+                            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                                <h3 className="font-semibold text-gray-900 mb-3">Booking Details</h3>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Student Name:</span>
+                                        <span className="font-medium">{bookingModalData.studentName}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Admission Number:</span>
+                                        <span className="font-medium">{bookingModalData.admissionNumber}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Hostel:</span>
+                                        <span className="font-medium">{bookingModalData.hostel}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Room:</span>
+                                        <span className="font-medium">{bookingModalData.room}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Bed:</span>
+                                        <span className="font-medium">{bookingModalData.bed}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Control Number:</span>
+                                        <span className="font-medium">{bookingModalData.controlNumber}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Amount:</span>
+                                        <span className="font-medium">{bookingModalData.amount} TZS</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Academic Year:</span>
+                                        <span className="font-medium">{bookingModalData.academicYear}</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <form onSubmit={handleBookingSubmit} className="p-6 space-y-6">
-                                {/* Selected Booking Info */}
-                                <div className="bg-white  p-4">
-                                    <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6 text-center">Selected Accommodation:</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                                        <div>
-                                            <span className="text-black font-medium">Hostel:</span>
-                                            <span className="ml-2 text-black">{selectedHostel?.name}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-black font-medium">Room:</span>
-                                            <span className="ml-2 text-black">{selectedRoom?.room_number}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-black font-medium">Bed:</span>
-                                            <span className="ml-2 text-black">{selectedBed}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Student Information */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Student Name <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={studentName}
-                                            onChange={(e) => setStudentName(e.target.value)}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-full focus:border-blue-500"
-                                            placeholder="Enter your full name"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Admission Number <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={admissionNumber}
-                                            onChange={(e) => setAdmissionNumber(e.target.value)}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-full focus:border-blue-500"
-                                            placeholder="Enter your admission number"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Amount (TZS) <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="number"
-                                            value={amount}
-                                            onChange={(e) => setAmount(e.target.value)}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-full focus:border-blue-500"
-                                            placeholder="Enter amount"
-                                            min="0"
-                                            step="1000"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Academic Year <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            value={academicYear}
-                                            onChange={(e) => setAcademicYear(e.target.value)}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-full focus:border-blue-500"
-                                            required
-                                        >
-                                            <option value="">Select Academic Year</option>
-                                            <option value="2024/2025">2024/2025</option>
-                                            <option value="2025/2026">2025/2026</option>
-                                            <option value="2026/2027">2026/2027</option>
-                                            <option value="2027/2028">2027/2028</option>
-                                            <option value="2028/2029">2028/2029</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                {/* Control Number Display */}
-                                {controlNumberGenerated && (
-                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Your Control Number
-                                        </label>
-                                        <div className="bg-white border border-yellow-300 rounded-lg px-4 py-3">
-                                            <p className="text-lg font-mono font-bold text-yellow-800">{controlNumber}</p>
-                                        </div>
-                                        <p className="text-xs text-yellow-700 mt-2">Please save this control number for future reference</p>
-                                    </div>
-                                )}
-
-                                {/* Action Buttons */}
-                                <div className="flex gap-4 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowBookingForm(false)}
-                                        className="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full font-medium transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                    {!controlNumberGenerated ? (
-                                        <button
-                                            type="button"
-                                            onClick={handleGenerateControlNumber}
-                                            className="flex-1 px-6 py-3 rounded-full font-semibold text-white transition-all bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                                        >
-                                            Generate Control Number
-                                        </button>
-                                    ) : (
-                                        <button
-                                            type="submit"
-                                            disabled={isLoading}
-                                            className={`flex-1 px-6 py-3 rounded-full font-semibold text-white transition-all ${isLoading
-                                                ? 'bg-gray-400 cursor-not-allowed'
-                                                : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800'
-                                                }`}
-                                        >
-                                            {isLoading ? (
-                                                <span className="flex items-center justify-center">
-                                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l-1.586 1.414L12 15.414l7.586-1.414L20 12a8 8 0 01-8z"></path>
-                                                    </svg>
-                                                    Processing...
-                                                </span>
-                                            ) : (
-                                                'Complete Booking'
-                                            )}
-                                        </button>
-                                    )}
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
-                {/* Booking Success Modal */}
-                {showBookingModal && bookingModalData && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
-                            <div className="text-center">
-                                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">Booking Successful!</h3>
-                                <p className="text-gray-600 mb-6">Your hostel booking has been confirmed.</p>
-
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                                    <p className="text-sm text-blue-800 mb-2">
-                                        <strong>Control Number:</strong>
-                                    </p>
-                                    <p className="text-lg font-mono font-bold text-blue-900">
-                                        {bookingModalData.controlNumber}
-                                    </p>
-                                </div>
-
-                                <div className="text-left bg-gray-50 rounded-lg p-4 mb-6">
-                                    <h4 className="font-semibold text-gray-800 mb-2">Booking Details:</h4>
-                                    <div className="space-y-1 text-sm text-gray-600">
-                                        <p><strong>Student:</strong> {bookingModalData.studentName}</p>
-                                        <p><strong>Admission:</strong> {bookingModalData.admissionNumber}</p>
-                                        <p><strong>Amount:</strong> TZS {bookingModalData.amount}</p>
-                                        <p><strong>Academic Year:</strong> {bookingModalData.academicYear}</p>
-                                        <p><strong>Hostel:</strong> {bookingModalData.hostel}</p>
-                                        <p><strong>Room:</strong> {bookingModalData.room}</p>
-                                        <p><strong>Bed:</strong> {bookingModalData.bed}</p>
-                                    </div>
-                                </div>
-
+                            <div className="flex justify-between">
                                 <button
                                     onClick={() => {
                                         setShowBookingModal(false);

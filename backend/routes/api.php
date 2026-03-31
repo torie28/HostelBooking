@@ -54,6 +54,7 @@ Route::put('/bookings/{id}/status', [HostelBookingController::class, 'updateStat
 Route::apiResource('payment-hostels', PaymentHostelController::class);
 Route::get('/payment-hostels/student/{studentId}', [PaymentHostelController::class, 'getStudentPayments']);
 Route::get('/payment-hostels/pending', [PaymentHostelController::class, 'getPendingPayments']);
+Route::get('/payment-hostels/student-amount/{admissionNumber}', [PaymentHostelController::class, 'getStudentPaymentAmount']);
 
 // Transaction Hostel routes
 Route::apiResource('transaction-hostels', TransactionHostelController::class);
