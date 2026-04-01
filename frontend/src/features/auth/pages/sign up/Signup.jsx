@@ -167,7 +167,7 @@ export function Signup() {
             const responseData = await response.json();
 
             if (response.ok && responseData.success) {
-                navigate('/signin', { state: { message: 'Registration successful! Please sign in with your credentials.' } });
+                navigate('/', { state: { message: 'Registration successful! Please sign in with your credentials.' } });
             } else {
                 setErrors({
                     submit: responseData.message || 'Registration failed',
