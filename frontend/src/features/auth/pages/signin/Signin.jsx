@@ -73,6 +73,9 @@ export function Signin() {
             const responseData = await response.json();
 
             if (response.ok && responseData.success) {
+                // Clear any existing booking data to prevent cross-user data leakage
+                localStorage.removeItem('studentBooking');
+
                 // Store token in localStorage
                 localStorage.setItem('auth_token', responseData.token);
                 localStorage.setItem('user', JSON.stringify(responseData.user));

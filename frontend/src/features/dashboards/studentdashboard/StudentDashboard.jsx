@@ -127,6 +127,118 @@ export function StudentDashboard() {
         return convert(num);
     };
 
+    // Fetch student-specific booking from database
+    const fetchStudentBooking = async () => {
+        if (!user) {
+            console.log('No user available for fetching booking');
+            return;
+        }
+
+        try {
+            console.log('Fetching booking for user:', user);
+
+            let studentBookings = [];
+
+            // First try: Get bookings by student ID
+            try {
+                if (user.id) {
+                    console.log('Trying to fetch by user ID:', user.id);
+                    studentBookings = await bookingApi.getByStudent(user.id);
+                    console.log('Bookings by user ID:', studentBookings);
+                }
+            } catch (error) {
+                console.log('Failed to fetch by user ID:', error.message);
+            }
+
+            // Second try: If no bookings found or API failed, try fetching all and filter by admission number
+            if (!studentBookings || studentBookings.length === 0) {
+                try {
+                    console.log('Trying to fetch all bookings and filter by admission number');
+                    const allBookings = await bookingApi.getAll();
+                    console.log('All bookings:', allBookings);
+
+                    if (user.admissionNumber) {
+                        studentBookings = allBookings.filter(booking =>
+                            booking.admission_number === user.admissionNumber
+                        );
+                        console.log('Filtered bookings by admission number:', studentBookings);
+                    }
+                } catch (error) {
+                    console.log('Failed to fetch all bookings:', error.message);
+                }
+            }
+
+            // Third try: Filter by student name if still no results
+            if (!studentBookings || studentBookings.length === 0) {
+                try {
+                    console.log('Trying to fetch all bookings and filter by student name');
+                    const allBookings = await bookingApi.getAll();
+
+                    if (user.name) {
+                        studentBookings = allBookings.filter(booking =>
+                            booking.student_name === user.name
+                        );
+                        console.log('Filtered bookings by student name:', studentBookings);
+                    }
+                } catch (error) {
+                    console.log('Failed to fetch all bookings for name filter:', error.message);
+                }
+            }
+
+            if (studentBookings && studentBookings.length > 0) {
+                console.log('Found bookings:', studentBookings.length);
+                // Get the most recent booking
+                const latestBooking = studentBookings[0];
+                console.log('Latest booking data:', latestBooking);
+
+                // Fetch hostel details to get the name
+                let hostelName = 'Unknown Hostel';
+                try {
+                    if (latestBooking.hostel_id) {
+                        console.log('Looking for hostel ID:', latestBooking.hostel_id);
+
+                        // First try to find in already loaded hostels
+                        const existingHostel = hostels.find(h => h.id === latestBooking.hostel_id);
+                        if (existingHostel) {
+                            hostelName = existingHostel.name;
+                            console.log('Found hostel in loaded data:', hostelName);
+                        } else {
+                            // If not found, fetch from API
+                            console.log('Fetching hostel details from API for ID:', latestBooking.hostel_id);
+                            const hostelDetails = await hostelApi.getById(latestBooking.hostel_id);
+                            hostelName = hostelDetails.name || 'Unknown Hostel';
+                            console.log('Hostel name from API:', hostelName);
+                        }
+                    }
+                } catch (error) {
+                    console.log('Failed to get hostel name:', error.message);
+                }
+
+                const displayData = {
+                    studentName: latestBooking.student_name,
+                    admissionNumber: latestBooking.admission_number,
+                    hostel: hostelName,
+                    room: latestBooking.room_number,
+                    bed: latestBooking.bed_id,
+                    controlNumber: latestBooking.controlnumber,
+                    amount: latestBooking.amount,
+                    academicYear: latestBooking.academic_year,
+                    status: latestBooking.status === 'active' ? 'booked' : 'paid',
+                    timestamp: latestBooking.booking_date,
+                    id: latestBooking.id
+                };
+                console.log('Setting student booking data:', displayData);
+                setStudentBooking(displayData);
+            } else {
+                console.log('No bookings found for user after all attempts');
+                setStudentBooking(null);
+            }
+        } catch (error) {
+            console.error('Error fetching student booking:', error);
+            setStudentBooking(null);
+        }
+    };
+
     // Fetch beds for a specific room
     const fetchRoomBeds = async (roomId) => {
         try {
@@ -167,6 +279,9 @@ export function StudentDashboard() {
     };
 
     useEffect(() => {
+        // Clear any existing booking data from localStorage to prevent cross-user data leakage
+        localStorage.removeItem('studentBooking');
+
         // Get user data from localStorage
         const userData = localStorage.getItem('user');
         if (userData) {
@@ -191,19 +306,16 @@ export function StudentDashboard() {
 
         // Fetch hostels from database
         fetchHostels();
-
-        // Load existing booking from localStorage
-        const existingBooking = localStorage.getItem('studentBooking');
-        if (existingBooking) {
-            try {
-                const parsedBooking = JSON.parse(existingBooking);
-                setStudentBooking(parsedBooking);
-            } catch (error) {
-                console.error('Error parsing booking data:', error);
-                localStorage.removeItem('studentBooking');
-            }
-        }
     }, [navigate]);
+
+    // Separate useEffect for fetching student booking (depends on user)
+    useEffect(() => {
+        if (user) {
+            console.log('User data available:', user);
+            console.log('User ID:', user.id, 'User admission number:', user.admissionNumber);
+            fetchStudentBooking();
+        }
+    }, [user]);
 
     const filteredHostels = selectedGender
         ? hostels.filter(hostel => hostel.gender === selectedGender)
@@ -218,6 +330,7 @@ export function StudentDashboard() {
     const handleLogout = () => {
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
+        localStorage.removeItem('studentBooking'); // Clear any existing booking data
         navigate('/');
     };
 
@@ -301,9 +414,8 @@ export function StudentDashboard() {
             setBookingModalData(displayData);
             setShowBookingModal(true);
 
-            // Save booking to student state and localStorage
-            setStudentBooking(displayData);
-            localStorage.setItem('studentBooking', JSON.stringify(displayData));
+            // Refetch student booking from database to ensure consistency
+            fetchStudentBooking();
 
             // Generate a new control number for next booking
             generateControlNumber();
