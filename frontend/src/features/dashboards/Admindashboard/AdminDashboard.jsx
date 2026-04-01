@@ -265,11 +265,11 @@ export function AdminDashboard() {
     };
 
     const exportToExcel = () => {
-        const headers = ['Name', 'Email', 'Level', 'Hostel', 'Room', 'Bed'];
+        const headers = ['Name', 'Email', 'Level', 'Hostel', 'Room', 'Bed', 'Amount', 'Academic Year'];
         const csvContent = [
             headers.join(','),
             ...students.map(student =>
-                [student.name, student.email, student.level, student.hostel, student.room, student.bed]
+                [student.name, student.email, student.level, student.hostel, student.room, student.bed, student.amount || '0', student.academic_year || 'N/A']
                     .map(field => `"${field}"`)
                     .join(',')
             )
@@ -319,6 +319,8 @@ export function AdminDashboard() {
                                 <th>Hostel</th>
                                 <th>Room</th>
                                 <th>Bed</th>
+                                <th>Amount</th>
+                                <th>Academic Year</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -330,6 +332,8 @@ export function AdminDashboard() {
                                     <td>${student.hostel}</td>
                                     <td>${student.room}</td>
                                     <td>${student.bed}</td>
+                                    <td>${student.amount || '0'}</td>
+                                    <td>${student.academic_year || 'N/A'}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -905,6 +909,8 @@ export function AdminDashboard() {
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hostel</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bed</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Academic Year</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
@@ -916,6 +922,8 @@ export function AdminDashboard() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.hostel}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.room}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.bed}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.amount || '0'}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.academic_year || 'N/A'}</td>
                                             </tr>
                                         ))}
                                     </tbody>
