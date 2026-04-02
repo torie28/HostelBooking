@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import SuccessNotification from '../../../../components/SuccessNotification';
 
 export function Signin() {
     const navigate = useNavigate();
@@ -11,6 +12,8 @@ export function Signin() {
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+    const [redirectPath, setRedirectPath] = useState('');
 
     // Show success message if redirected from registration
     React.useEffect(() => {
@@ -19,6 +22,10 @@ export function Signin() {
             console.log('Registration successful:', location.state.message);
         }
     }, [location]);
+
+    const handleCountdownComplete = () => {
+        navigate(redirectPath, { replace: true });
+    };
 
     const validateForm = () => {
         const newErrors = {};
@@ -80,12 +87,11 @@ export function Signin() {
                 localStorage.setItem('auth_token', responseData.token);
                 localStorage.setItem('user', JSON.stringify(responseData.user));
 
-                alert('Login successful! Redirecting to dashboard...');
-
-                // Redirect based on user role
+                // Set redirect path and show success notification
                 const dashboardPath = responseData.user.role === 'admin' ? '/admindashboard' : '/studentdashboard';
                 const from = location.state?.from?.pathname || dashboardPath;
-                navigate(from, { replace: true });
+                setRedirectPath(from);
+                setShowSuccessNotification(true);
             } else {
                 setErrors({
                     submit: responseData.message || 'Login failed'
@@ -229,6 +235,13 @@ export function Signin() {
                     </div>
                 </div>
             </div>
+
+            {/* Success Notification */}
+            <SuccessNotification
+                message="Welcome back! You are being redirected to your dashboard."
+                isVisible={showSuccessNotification}
+                onCountdownComplete={handleCountdownComplete}
+            />
         </div>
     );
 }
