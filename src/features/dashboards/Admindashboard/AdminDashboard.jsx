@@ -532,7 +532,7 @@ export function AdminDashboard() {
 
     const exportToExcel = () => {
 
-        const headers = ['Name', 'Email', 'Level', 'Hostel', 'Room', 'Bed'];
+        const headers = ['Name', 'Email', 'Level', 'Academic Year', 'Amount', 'Hostel', 'Room', 'Bed'];
 
         const csvContent = [
 
@@ -540,7 +540,7 @@ export function AdminDashboard() {
 
             ...students.map(student =>
 
-                [student.name, student.email, student.level, student.hostel, student.room, student.bed]
+                [student.name, student.email, student.level, student.academic_year || '', student.amount || '', student.hostel, student.room, student.bed]
 
                     .map(field => `"${field}"`)
 
@@ -602,15 +602,233 @@ export function AdminDashboard() {
 
                     <style>
 
-                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        @page {
 
-                        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                            margin: 2cm;
 
-                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                            size: A4;
 
-                        th { background-color: #f2f2f2f; font-weight: bold; }
+                        }
 
-                        h1 { color: #333; text-align: center; margin-bottom: 30px; }
+                        
+
+                        body { 
+
+                            font-family: 'Times New Roman', Times, serif; 
+
+                            margin: 0; 
+
+                            padding: 20px; 
+
+                            line-height: 1.6;
+
+                            color: #2c3e50;
+
+                            background: #ffffff;
+
+                        }
+
+                        
+
+                        .header {
+
+                            text-align: center;
+
+                            margin-bottom: 40px;
+
+                            padding-bottom: 20px;
+
+                            border-bottom: 3px solid #2c3e50;
+
+                        }
+
+                        
+
+                        .header h1 {
+
+                            font-size: 28px;
+
+                            font-weight: bold;
+
+                            color: #2c3e50;
+
+                            margin: 0 0 10px 0;
+
+                            text-transform: uppercase;
+
+                            letter-spacing: 2px;
+
+                        }
+
+                        
+
+                        .header .subtitle {
+
+                            font-size: 14px;
+
+                            color: #7f8c8d;
+
+                            font-style: italic;
+
+                            margin: 5px 0;
+
+                        }
+
+                        
+
+                        .report-info {
+
+                            text-align: center;
+
+                            margin-bottom: 30px;
+
+                        }
+
+                        
+
+                        .report-info p {
+
+                            font-size: 12px;
+
+                            color: #7f8c8d;
+
+                            margin: 5px 0;
+
+                        }
+
+                        
+
+                        table { 
+
+                            border-collapse: collapse; 
+
+                            width: 100%; 
+
+                            margin-bottom: 20px; 
+
+                            border: 2px solid #2c3e50;
+
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+                        }
+
+                        
+
+                        th, td { 
+
+                            border: 1px solid #34495e; 
+
+                            padding: 12px 8px; 
+
+                            text-align: left; 
+
+                            font-size: 11px;
+
+                        }
+
+                        
+
+                        th { 
+
+                            background: linear-gradient(to bottom, #34495e, #2c3e50); 
+
+                            color: white; 
+
+                            font-weight: bold; 
+
+                            text-transform: uppercase;
+
+                            font-size: 10px;
+
+                            letter-spacing: 0.5px;
+
+                            text-align: center;
+
+                        }
+
+                        
+
+                        tbody tr:nth-child(even) {
+
+                            background-color: #f8f9fa;
+
+                        }
+
+                        
+
+                        tbody tr:hover {
+
+                            background-color: #e8f4f8;
+
+                        }
+
+                        
+
+                        .footer {
+
+                            margin-top: 40px;
+
+                            padding-top: 20px;
+
+                            border-top: 1px solid #bdc3c7;
+
+                            text-align: center;
+
+                            font-size: 10px;
+
+                            color: #7f8c8d;
+
+                        }
+
+                        
+
+                        .watermark {
+
+                            position: fixed;
+
+                            top: 50%;
+
+                            left: 50%;
+
+                            transform: translate(-50%, -50%) rotate(-45deg);
+
+                            font-size: 100px;
+
+                            color: #ecf0f1;
+
+                            z-index: -1;
+
+                            opacity: 0.3;
+
+                            font-weight: bold;
+
+                        }
+
+                        
+
+                        @media print {
+
+                            .watermark {
+
+                                position: fixed;
+
+                                top: 50%;
+
+                                left: 50%;
+
+                                transform: translate(-50%, -50%) rotate(-45deg);
+
+                                font-size: 80px;
+
+                                color: #ecf0f1;
+
+                                z-index: -1;
+
+                                opacity: 0.2;
+
+                            }
+
+                        }
 
                     </style>
 
@@ -618,9 +836,27 @@ export function AdminDashboard() {
 
                 <body>
 
-                    <h1>Student Accommodation Report</h1>
+                    <div class="watermark">OFFICIAL</div>
 
-                    <p>Generated on: ${new Date().toLocaleString()}</p>
+                    <div class="header">
+
+                        <h1>Student Accommodation Report</h1>
+
+                        <div class="subtitle">Hostel Management System</div>
+
+                        <div class="subtitle">Academic Year ${new Date().getFullYear()}/${new Date().getFullYear() + 1}</div>
+
+                    </div>
+
+                    <div class="report-info">
+
+                        <p><strong>Report Generated:</strong> ${new Date().toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+
+                        <p><strong>Total Students:</strong> ${students.length}</p>
+
+                        <p><strong>Generated By:</strong> ${user ? user.name : 'Administrator'}</p>
+
+                    </div>
 
                     <table>
 
@@ -628,17 +864,23 @@ export function AdminDashboard() {
 
                             <tr>
 
+                                <th>S.No</th>
+
                                 <th>Student Name</th>
 
-                                <th>Email</th>
+                                <th>Email Address</th>
 
-                                <th>Level</th>
+                                <th>Academic Level</th>
 
-                                <th>Hostel</th>
+                                <th>Academic Year</th>
 
-                                <th>Room</th>
+                                <th>Amount</th>
 
-                                <th>Bed</th>
+                                <th>Hostel Name</th>
+
+                                <th>Room Number</th>
+
+                                <th>Bed Number</th>
 
                             </tr>
 
@@ -646,21 +888,27 @@ export function AdminDashboard() {
 
                         <tbody>
 
-                            ${students.map(student => `
+                            ${students.map((student, index) => `
 
                                 <tr>
 
-                                    <td>${student.name}</td>
+                                    <td style="text-align: center; font-weight: bold;">${index + 1}</td>
+
+                                    <td style="font-weight: 600;">${student.name}</td>
 
                                     <td>${student.email}</td>
 
-                                    <td>${student.level}</td>
+                                    <td style="text-align: center;">${student.level}</td>
+
+                                    <td style="text-align: center;">${student.academic_year || '-'}</td>
+
+                                    <td style="text-align: center;">${student.amount ? `$${student.amount}` : '-'}</td>
 
                                     <td>${student.hostel}</td>
 
-                                    <td>${student.room}</td>
+                                    <td style="text-align: center; font-weight: 600;">${student.room}</td>
 
-                                    <td>${student.bed}</td>
+                                    <td style="text-align: center;">${student.bed}</td>
 
                                 </tr>
 
@@ -669,6 +917,14 @@ export function AdminDashboard() {
                         </tbody>
 
                     </table>
+
+                    <div class="footer">
+
+                        <p> ${new Date().getFullYear()} Hostel Management System | Confidential Document</p>
+
+                        <p>This document contains sensitive information and should be handled according to institutional policies.</p>
+
+                    </div>
 
                 </body>
 
@@ -1806,6 +2062,10 @@ export function AdminDashboard() {
 
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level</th>
 
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Academic Year</th>
+
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hostel</th>
 
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
@@ -1827,6 +2087,10 @@ export function AdminDashboard() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.email}</td>
 
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.level}</td>
+
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.academic_year || '-'}</td>
+
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.amount ? `$${student.amount}` : '-'}</td>
 
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.hostel}</td>
 
