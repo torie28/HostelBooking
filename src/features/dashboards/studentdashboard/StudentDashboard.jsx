@@ -373,6 +373,12 @@ export function StudentDashboard() {
     const handleBookingSubmit = async (e) => {
         e.preventDefault();
 
+        // Additional safeguard: Check if student already has a booking
+        if (!isBookingAllowed) {
+            alert('You already have an active booking. Students are only allowed to book one hostel, room, and bed at a time.');
+            return;
+        }
+
         if (!selectedHostel || !selectedRoom || !selectedBed || !admissionNumber || !studentName || !amount || !academicYear) {
             alert('Please fill in all required fields');
             return;
@@ -439,6 +445,12 @@ export function StudentDashboard() {
     };
 
     const handleConfirmBooking = () => {
+        // Additional safeguard: Check if student already has a booking
+        if (!isBookingAllowed) {
+            alert('You already have an active booking. Students are only allowed to book one hostel, room, and bed at a time.');
+            return;
+        }
+
         // Auto-fill user data
         if (user) {
             setStudentName(user.name || '');
@@ -700,6 +712,9 @@ export function StudentDashboard() {
         room.room_number.toLowerCase().includes(roomSearchTerm.toLowerCase())
     );
 
+    // Check if student is allowed to book (no existing active booking)
+    const isBookingAllowed = !studentBooking || (studentBooking.status !== 'booked' && studentBooking.status !== 'paid');
+
     return (
         <>
             <style>{animationStyles}</style>
@@ -787,7 +802,7 @@ export function StudentDashboard() {
                             <div className={`p-4 rounded-lg border-2 ${selectedGender === 'male'
                                 ? 'border-blue-500 bg-blue-50'
                                 : 'border-pink-500 bg-pink-50'
-                                }`}>
+                                } ${!isBookingAllowed ? 'opacity-50' : ''}`}>
                                 <div className="text-center">
                                     <div className="text-2xl mb-2">{selectedGender === 'male' ? '👨' : '👩'}</div>
                                     <div className="font-medium">{selectedGender === 'male' ? 'Boys Hostel' : 'Girls Hostel'}</div>
@@ -797,13 +812,18 @@ export function StudentDashboard() {
                                     <div className="text-xs text-gray-500 mt-2">
                                         Automatically selected based on your profile
                                     </div>
+                                    {!isBookingAllowed && (
+                                        <div className="mt-2 p-2 bg-red-100 border border-red-200 rounded text-xs text-red-700">
+                                            Booking restricted - You already have an active booking
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Step 2: Hostel Selection */}
-                    {selectedGender && (
+                    {selectedGender && isBookingAllowed && (
                         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                             <h2 className="text-xl font-semibold mb-4 text-gray-800">2. Select Hostel</h2>
 
@@ -886,9 +906,7 @@ export function StudentDashboard() {
                             )}
                         </div>
                     )}
-
-                    {/* Step 3: Hostel Details */}
-                    {selectedHostel && (
+                    {selectedHostel && isBookingAllowed && (
                         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                             <h2 className="text-xl font-semibold mb-4 text-gray-800">3. Hostel Details</h2>
                             <div className="bg-gray-50 p-4 rounded-lg">
@@ -925,8 +943,29 @@ export function StudentDashboard() {
                         </div>
                     )}
 
+                    {/* Booking Restricted Message */}
+                    {!isBookingAllowed && studentBooking && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+                            <div className="flex items-center">
+                                <svg className="h-6 w-6 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-red-800">Booking Restricted</h3>
+                                    <p className="text-red-700 mt-1">
+                                        You already have an active booking for {studentBooking.hostel}, Room {studentBooking.room}, Bed {studentBooking.bed}.
+                                        Students are only allowed to book one hostel, room, and bed at a time.
+                                    </p>
+                                    <p className="text-red-600 text-sm mt-2">
+                                        If you need to change your booking, please contact the administration.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Step 4: Available Rooms */}
-                    {selectedHostel && (
+                    {selectedHostel && isBookingAllowed && (
                         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-xl font-semibold text-gray-800">4. Available Rooms</h2>
@@ -1127,7 +1166,7 @@ export function StudentDashboard() {
                     )}
 
                     {/* Step 5: Bed Selection */}
-                    {selectedRoom && (
+                    {selectedRoom && isBookingAllowed && (
                         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                             <h2 className="text-xl font-semibold mb-4 text-gray-800">5. Select Bed</h2>
                             {console.log("Selected Room:", selectedRoom)}
