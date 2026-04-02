@@ -589,10 +589,11 @@ export function AdminDashboard() {
 
 
     const exportToPDF = () => {
+        // Store current page content
+        const originalContent = document.body.innerHTML;
 
-        const printWindow = window.open('', '_blank');
-
-        printWindow.document.write(`
+        // Create the print content
+        const printContent = `
 
             <html>
 
@@ -603,11 +604,8 @@ export function AdminDashboard() {
                     <style>
 
                         @page {
-
-                            margin: 2cm;
-
+                            margin: 1.5cm;
                             size: A4;
-
                         }
 
                         
@@ -718,11 +716,11 @@ export function AdminDashboard() {
 
                             border: 1px solid #34495e; 
 
-                            padding: 12px 8px; 
+                            padding: 6px 3px; 
 
                             text-align: left; 
 
-                            font-size: 11px;
+                            font-size: 9px; 
 
                         }
 
@@ -738,9 +736,9 @@ export function AdminDashboard() {
 
                             text-transform: uppercase;
 
-                            font-size: 10px;
+                            font-size: 8px; 
 
-                            letter-spacing: 0.5px;
+                            letter-spacing: 0.3px;
 
                             text-align: center;
 
@@ -930,14 +928,21 @@ export function AdminDashboard() {
 
             </html>
 
-        `);
+        `;
 
-        printWindow.document.close();
+        // Replace current content with print content
+        document.body.innerHTML = printContent;
 
-        printWindow.print();
+        // Print the current page
+        window.print();
 
+        // Restore original content after printing (with a small delay to ensure print dialog starts)
+        setTimeout(() => {
+            document.body.innerHTML = originalContent;
+            // Re-attach any event listeners that might have been lost
+            window.location.reload();
+        }, 100);
     };
-
 
 
     const handleLogout = () => {
