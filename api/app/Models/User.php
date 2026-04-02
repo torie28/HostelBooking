@@ -24,6 +24,7 @@ class User extends Authenticatable
         'level',
         'level_id',
         'phone_number',
+        'gender',
         'email',
         'password',
         'role',

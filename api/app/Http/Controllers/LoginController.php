@@ -54,6 +54,7 @@ class LoginController extends Controller
                     'admission_number' => $user->admission_number,
                     'level' => $user->level,
                     'phone_number' => $user->phone_number,
+                    'gender' => $user->gender,
                     'role' => $user->role,
                 ],
                 'token' => $token
