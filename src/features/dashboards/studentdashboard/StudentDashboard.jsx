@@ -291,6 +291,11 @@ export function StudentDashboard() {
                 // Auto-select gender based on user data if available
                 if (parsedUser.gender) {
                     setSelectedGender(parsedUser.gender);
+                    console.log('Auto-selected gender based on user profile:', parsedUser.gender);
+                } else {
+                    console.warn('User gender not found in profile');
+                    // If no gender, set a default to prevent empty view
+                    setSelectedGender('male');
                 }
             } catch (error) {
                 console.error('Error parsing user data:', error);
@@ -317,7 +322,7 @@ export function StudentDashboard() {
         }
     }, [user]);
 
-    const filteredHostels = selectedGender
+    const filteredHostels = selectedGender && hostels.length > 0
         ? hostels.filter(hostel => hostel.gender === selectedGender)
         : [];
 
@@ -775,46 +780,25 @@ export function StudentDashboard() {
                         )}
                     </div>
 
-                    {/* Step 1: Gender Selection */}
+                    {/* Step 1: Gender Display (Automatic) */}
                     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                        <h2 className="text-xl font-semibold mb-4 text-gray-800">1. Select Hostel Based on Gender</h2>
-                        <div className="grid grid-cols-2 gap-4">
-                            <button
-                                onClick={() => {
-                                    setSelectedGender('male');
-                                    setSelectedHostel(null);
-                                    setSelectedRoom(null);
-                                    setSelectedBed(null);
-                                }}
-                                className={`p-4 rounded-lg border-2 transition-all ${selectedGender === 'male'
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-gray-300 hover:border-gray-400'
-                                    }`}
-                            >
+                        <h2 className="text-xl font-semibold mb-4 text-gray-800">1. Hostel Type Based on Your Profile</h2>
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className={`p-4 rounded-lg border-2 ${selectedGender === 'male'
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-pink-500 bg-pink-50'
+                                }`}>
                                 <div className="text-center">
-                                    <div className="text-2xl mb-2">👨</div>
-                                    <div className="font-medium">Boys Hostel</div>
-                                    <div className="text-sm text-gray-600">2 hostels available</div>
+                                    <div className="text-2xl mb-2">{selectedGender === 'male' ? '👨' : '👩'}</div>
+                                    <div className="font-medium">{selectedGender === 'male' ? 'Boys Hostel' : 'Girls Hostel'}</div>
+                                    <div className="text-sm text-gray-600">
+                                        {selectedGender === 'male' ? 'Male' : 'Female'} student hostels only
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-2">
+                                        Automatically selected based on your profile
+                                    </div>
                                 </div>
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setSelectedGender('female');
-                                    setSelectedHostel(null);
-                                    setSelectedRoom(null);
-                                    setSelectedBed(null);
-                                }}
-                                className={`p-4 rounded-lg border-2 transition-all ${selectedGender === 'female'
-                                    ? 'border-pink-500 bg-pink-50'
-                                    : 'border-gray-300 hover:border-gray-400'
-                                    }`}
-                            >
-                                <div className="text-center">
-                                    <div className="text-2xl mb-2">👩</div>
-                                    <div className="font-medium">Girls Hostel</div>
-                                    <div className="text-sm text-gray-600">2 hostels available</div>
-                                </div>
-                            </button>
+                            </div>
                         </div>
                     </div>
 
