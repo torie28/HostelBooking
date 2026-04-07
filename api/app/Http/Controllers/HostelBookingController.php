@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\HostelBooking;
 use App\Models\User;
 use App\Models\Bed;
+use App\Models\PaymentHostel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -219,6 +220,28 @@ class HostelBookingController extends Controller
                 'controlnumber' => $request->controlnumber,
                 'booking_date' => $request->booking_date,
             ]);
+
+            // Create payment record automatically when booking is successful
+            try {
+                $student = User::where('admission_number', $request->admission_number)->first();
+                
+                if ($student) {
+                    PaymentHostel::create([
+                        'student_id' => $student->id,
+                        'academic_year' => $request->academic_year,
+                        'booking_id' => $booking->id,
+                        'amount' => $request->amount,
+                        'status' => 'paid', // Mark as paid since booking was successful
+                        'due_date' => now()->addDays(30), // Set due date 30 days from now
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Log payment creation error but don't fail the booking
+                \Log::error('Failed to create payment record for booking', [
+                    'booking_id' => $booking->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
 
             // Update bed status to occupied
             $bed = Bed::find($request->bed_id);

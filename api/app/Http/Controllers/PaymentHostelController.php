@@ -172,6 +172,60 @@ class PaymentHostelController extends Controller
         return response()->json($pendingPayments);
     }
 
+    public function createPaymentFromBooking(Request $request, $bookingId)
+    {
+        $booking = HostelBooking::find($bookingId);
+        
+        if (!$booking) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking not found'
+            ], 404);
+        }
+
+        // Check if payment already exists for this booking
+        $existingPayment = PaymentHostel::where('booking_id', $bookingId)->first();
+        if ($existingPayment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment already exists for this booking'
+            ], 400);
+        }
+
+        try {
+            // Find student by admission number
+            $student = User::where('admission_number', $booking->admission_number)->first();
+            
+            if (!$student) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Student not found for this booking'
+                ], 404);
+            }
+
+            $payment = PaymentHostel::create([
+                'student_id' => $student->id,
+                'academic_year' => $booking->academic_year,
+                'booking_id' => $booking->id,
+                'amount' => $booking->amount,
+                'status' => 'paid', // Mark as paid since booking was successful
+                'due_date' => now()->addDays(30), // Set due date 30 days from now
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment created successfully from booking',
+                'payment' => $payment->load(['student', 'booking'])
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment creation failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function getStudentPaymentAmount($admissionNumber)
     {
         $student = User::where('admission_number', $admissionNumber)->first();
@@ -183,10 +237,9 @@ class PaymentHostelController extends Controller
             ], 404);
         }
 
-        // Get the latest payment for the student
+        // Get the latest payment for the student (including pending payments)
         $payment = PaymentHostel::where('student_id', $student->id)
-            ->where('status', 'paid')
-            ->orderBy('updated_at', 'desc')
+            ->orderBy('created_at', 'desc')
             ->first();
 
         if (!$payment) {
@@ -199,7 +252,8 @@ class PaymentHostelController extends Controller
         return response()->json([
             'success' => true,
             'amount' => $payment->amount,
-            'payment' => $payment
+            'status' => $payment->status,
+            'payment' => $payment->load(['booking'])
         ]);
     }
 }
