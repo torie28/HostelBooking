@@ -1137,9 +1137,270 @@ export function AdminDashboard() {
 
         return (
 
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-white animate-fade-in">
 
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                <div className="relative w-32 h-32 animate-scale-in">
+
+                    {/* Central glowing core */}
+
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-gray-500 rounded-full blur-sm animate-pulse"></div>
+
+
+
+                    {/* Spherical orbiting dots */}
+
+                    <div className="absolute inset-0 animate-spin-slow">
+
+                        {/* Dot 1 - Top orbit */}
+
+                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-400 rounded-full blur-sm animate-pulse"></div>
+
+
+
+                        {/* Dot 2 - Right orbit */}
+
+                        <div className="absolute top-1/2 right-4 transform -translate-y-1/2 w-2 h-2 bg-gray-400 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+
+
+
+                        {/* Dot 3 - Bottom orbit */}
+
+                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-400 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+
+
+
+                        {/* Dot 4 - Left orbit */}
+
+                        <div className="absolute top-1/2 left-4 transform -translate-y-1/2 w-2 h-2 bg-gray-400 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.6s' }}></div>
+
+                    </div>
+
+
+
+                    {/* Secondary rotating layer with different speed */}
+
+                    <div className="absolute inset-0 animate-spin-reverse">
+
+                        {/* Dot 5 - Diagonal top-right */}
+
+                        <div className="absolute top-12 right-12 w-1.5 h-1.5 bg-gray-300 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.1s' }}></div>
+
+
+
+                        {/* Dot 6 - Diagonal bottom-right */}
+
+                        <div className="absolute bottom-12 right-12 w-1.5 h-1.5 bg-gray-300 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+
+
+
+                        {/* Dot 7 - Diagonal bottom-left */}
+
+                        <div className="absolute bottom-12 left-12 w-1.5 h-1.5 bg-gray-300 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+
+
+
+                        {/* Dot 8 - Diagonal top-left */}
+
+                        <div className="absolute top-12 left-12 w-1.5 h-1.5 bg-gray-300 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.7s' }}></div>
+
+                    </div>
+
+
+
+                    {/* Tertiary rotating layer for depth */}
+
+                    <div className="absolute inset-0 animate-spin-medium">
+
+                        {/* Additional dots for spherical effect */}
+
+                        <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-gray-200 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.15s' }}></div>
+
+
+
+                        <div className="absolute top-1/4 right-1/4 w-1 h-1 bg-gray-200 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.35s' }}></div>
+
+
+
+                        <div className="absolute bottom-1/4 right-1/4 w-1 h-1 bg-gray-200 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.55s' }}></div>
+
+
+
+                        <div className="absolute bottom-1/4 left-1/4 w-1 h-1 bg-gray-200 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.75s' }}></div>
+
+                    </div>
+
+
+
+                    {/* Loading text */}
+
+                    <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center">
+
+                        {/* <div className="text-gray-800 text-lg font-light tracking-wider animate-pulse">Loading System</div> */}
+
+                        <div className="text-black/80 text-sm font-light tracking-widest mt-2 opacity-75 animate-heartbeat">Hostel Booking App</div>
+
+                    </div>
+
+                </div>
+
+
+
+
+                <style jsx>{`
+
+                    @keyframes spin-slow {
+
+                        from { transform: rotate(0deg); }
+
+                        to { transform: rotate(360deg); }
+
+                    }
+
+                    
+
+                    @keyframes spin-reverse {
+
+                        from { transform: rotate(360deg); }
+
+                        to { transform: rotate(0deg); }
+
+                    }
+
+                    
+
+                    @keyframes spin-medium {
+
+                        from { transform: rotate(0deg); }
+
+                        to { transform: rotate(-360deg); }
+
+                    }
+
+                    
+
+                    @keyframes fade-in {
+
+                        from { 
+
+                            opacity: 0;
+
+                        }
+
+                        to { 
+
+                            opacity: 1;
+
+                        }
+
+                    }
+
+                    
+
+                    @keyframes scale-in {
+
+                        from { 
+
+                            opacity: 0;
+
+                            transform: scale(0.8);
+
+                        }
+
+                        to { 
+
+                            opacity: 1;
+
+                            transform: scale(1);
+
+                        }
+
+                    }
+
+                    
+
+                    @keyframes heartbeat {
+
+                        0% { 
+
+                            transform: scale(1);
+
+                        }
+
+                        14% { 
+
+                            transform: scale(1.1);
+
+                        }
+
+                        28% { 
+
+                            transform: scale(1);
+
+                        }
+
+                        42% { 
+
+                            transform: scale(1.1);
+
+                        }
+
+                        70% { 
+
+                            transform: scale(1);
+
+                        }
+
+                    }
+
+                    
+
+                    .animate-spin-slow {
+
+                        animation: spin-slow 1s linear infinite;
+
+                    }
+
+                    
+
+                    .animate-spin-reverse {
+
+                        animation: spin-reverse 1s linear infinite;
+
+                    }
+
+                    
+
+                    .animate-spin-medium {
+
+                        animation: spin-medium 1s linear infinite;
+
+                    }
+
+                    
+
+                    .animate-fade-in {
+
+                        animation: fade-in 0.8s ease-out;
+
+                    }
+
+                    
+
+                    .animate-scale-in {
+
+                        animation: scale-in 0.6s ease-out 0.2s both;
+
+                    }
+
+                    
+
+                    .animate-heartbeat {
+
+                        animation: heartbeat 1.5s ease-in-out 0.8s infinite;
+
+                    }
+
+                `}</style>
 
             </div>
 
@@ -1277,9 +1538,9 @@ export function AdminDashboard() {
 
                                     className={`py-4 px-1 border-b-2 font-medium text-sm capitalize transition-all duration-200 ease-in-out transform ${activeTab === tab
 
-                                            ? 'border-blue-500 text-blue-600 transform -translate-y-0.5 shadow-sm'
+                                        ? 'border-blue-500 text-blue-600 transform -translate-y-0.5 shadow-sm'
 
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:transform -translate-y-0.5'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:transform -translate-y-0.5'
 
                                         } ${isTransitioning && tab === previousTab ? 'opacity-50 transform scale-95' : ''}`}
 
@@ -1307,7 +1568,7 @@ export function AdminDashboard() {
 
                         }`}>
 
-                        <div className="bg-white overflow-hidden shadow rounded-full">
+                        <div className="bg-white overflow-hidden shadow rounded-lg">
 
                             <div className="p-5">
 
