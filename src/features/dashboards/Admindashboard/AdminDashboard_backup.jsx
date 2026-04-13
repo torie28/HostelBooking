@@ -1271,7 +1271,7 @@ export function AdminDashboard() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-                        <div className="bg-white overflow-hidden shadow rounded-full">
+                        <div className="bg-white overflow-hidden shadow rounded-lg">
 
                             <div className="p-5">
 
@@ -1429,7 +1429,7 @@ export function AdminDashboard() {
 
                                     onClick={() => setShowAddHostelModal(true)}
 
-                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-black/80 hover:bg-black/80"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
 
                                 >
 
@@ -1555,7 +1555,7 @@ export function AdminDashboard() {
 
                                     onClick={() => setShowAddRoomModal(true)}
 
-                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-black/80 hover:bg-black/80"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
 
                                 >
 
@@ -1564,133 +1564,6 @@ export function AdminDashboard() {
                                 </button>
 
                             </div>
-
-                            {/* Room Filters */}
-
-                            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                                    {/* Gender Filter */}
-
-                                    <div>
-
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-
-                                            Filter by Gender
-
-                                        </label>
-
-                                        <select
-
-                                            value={roomGenderFilter}
-
-                                            onChange={(e) => {
-
-                                                setRoomGenderFilter(e.target.value);
-
-                                                setRoomHostelFilter('');
-
-                                            }}
-
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-black/60"
-
-                                        >
-
-                                            <option value="">All Genders</option>
-
-                                            {genders.map((gender) => (
-
-                                                <option key={gender.value} value={gender.value}>
-
-                                                    {gender.label}
-
-                                                </option>
-
-                                            ))}
-
-                                        </select>
-
-                                    </div>
-
-
-
-                                    {/* Hostel Filter */}
-
-                                    <div>
-
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-
-                                            Filter by Hostel
-
-                                        </label>
-
-                                        <select
-
-                                            value={roomHostelFilter}
-
-                                            onChange={(e) => setRoomHostelFilter(e.target.value)}
-
-                                            disabled={!roomGenderFilter}
-
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-black/60 disabled:bg-gray-100 disabled:cursor-not-allowed"
-
-                                        >
-
-                                            <option value="">All Hostels</option>
-
-                                            {hostels
-
-                                                .filter(hostel => !roomGenderFilter || hostel.gender === roomGenderFilter)
-
-                                                .map((hostel) => (
-
-                                                    <option key={hostel.id} value={hostel.id}>
-
-                                                        {hostel.name}
-
-                                                    </option>
-
-                                                ))}
-
-                                        </select>
-
-                                    </div>
-
-                                </div>
-
-
-
-                                {/* Reset Filters Button */}
-
-                                {(roomGenderFilter || roomHostelFilter) && (
-
-                                    <div className="mt-4">
-
-                                        <button
-
-                                            onClick={() => {
-
-                                                setRoomGenderFilter('');
-
-                                                setRoomHostelFilter('');
-
-                                            }}
-
-                                            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50"
-
-                                        >
-
-                                            Reset Filters
-
-                                        </button>
-
-                                    </div>
-
-                                )}
-
-                            </div>
-
 
                             <div className="overflow-x-auto">
 
@@ -1720,7 +1593,7 @@ export function AdminDashboard() {
 
                                     <tbody className="bg-white divide-y divide-gray-200">
 
-                                        {getFilteredRooms().map((room) => (
+                                        {rooms.map((room) => (
 
                                             <tr key={room.id}>
 
@@ -2394,7 +2267,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewHostel({ ...newHostel, name: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2412,7 +2285,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewHostel({ ...newHostel, gender: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2446,7 +2319,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewHostel({ ...newHostel, capacity: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2462,7 +2335,7 @@ export function AdminDashboard() {
 
                                         onClick={() => setShowAddHostelModal(false)}
 
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-full"
+                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
 
                                     >
 
@@ -2474,7 +2347,7 @@ export function AdminDashboard() {
 
                                         type="submit"
 
-                                        className="bg-black/80 hover:bg-black/80 text-white px-4 py-2 rounded-full"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
 
                                     >
 
@@ -2520,7 +2393,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, hostel_id: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2550,7 +2423,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, room_number: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2570,7 +2443,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, floor_number: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2590,7 +2463,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, capacity: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2608,7 +2481,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, status: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2632,7 +2505,7 @@ export function AdminDashboard() {
 
                                         onClick={() => setShowAddRoomModal(false)}
 
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-full"
+                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
 
                                     >
 
@@ -2644,7 +2517,7 @@ export function AdminDashboard() {
 
                                         type="submit"
 
-                                        className="bg-black/80 hover:bg-black/80 text-white px-4 py-2 rounded-full"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
 
                                     >
 
@@ -2690,7 +2563,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, hostel_id: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2720,7 +2593,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, room_number: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2740,7 +2613,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, floor_number: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2760,7 +2633,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, capacity: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2778,7 +2651,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, status: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2802,7 +2675,7 @@ export function AdminDashboard() {
 
                                         onClick={() => setShowEditRoomModal(false)}
 
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-full"
+                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
 
                                     >
 
@@ -2814,7 +2687,7 @@ export function AdminDashboard() {
 
                                         type="submit"
 
-                                        className="bg-black/80 hover:bg-black/80 text-white px-4 py-2 rounded-full"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
 
                                     >
 
@@ -2860,7 +2733,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewBed({ ...newBed, room_id: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2868,7 +2741,7 @@ export function AdminDashboard() {
 
                                         <option value="">Select Room</option>
 
-                                        {getFilteredRooms().map((room) => (
+                                        {rooms.map((room) => (
 
                                             <option key={room.id} value={room.id}>{room.room_number}</option>
 
@@ -2890,7 +2763,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewBed({ ...newBed, bed_number: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2908,7 +2781,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewBed({ ...newBed, status: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2930,7 +2803,7 @@ export function AdminDashboard() {
 
                                         onClick={() => setShowAddBedModal(false)}
 
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-full"
+                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
 
                                     >
 
@@ -2942,7 +2815,7 @@ export function AdminDashboard() {
 
                                         type="submit"
 
-                                        className="bg-black/80 hover:bg-black/80 text-white px-4 py-2 rounded-full"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
 
                                     >
 
@@ -2990,7 +2863,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setEditingBedData({ ...editingBedData, bed_number: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3008,7 +2881,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setEditingBedData({ ...editingBedData, room_id: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3016,7 +2889,7 @@ export function AdminDashboard() {
 
                                         <option value="">Select Room</option>
 
-                                        {getFilteredRooms().map((room) => (
+                                        {rooms.map((room) => (
 
                                             <option key={room.id} value={room.id}>{room.room_number}</option>
 
@@ -3036,7 +2909,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setEditingBedData({ ...editingBedData, status: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3064,7 +2937,7 @@ export function AdminDashboard() {
 
                                         }}
 
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-full"
+                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
 
                                     >
 
@@ -3076,7 +2949,7 @@ export function AdminDashboard() {
 
                                         type="submit"
 
-                                        className="bg-black/80 hover:bg-black/80 text-white px-4 py-2 rounded-full"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
 
                                     >
 
@@ -3124,7 +2997,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewHostel({ ...newHostel, name: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3142,7 +3015,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewHostel({ ...newHostel, gender: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3176,7 +3049,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewHostel({ ...newHostel, capacity: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3194,7 +3067,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewHostel({ ...newHostel, status: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3226,7 +3099,7 @@ export function AdminDashboard() {
 
                                         }}
 
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-full"
+                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
 
                                     >
 
@@ -3238,7 +3111,7 @@ export function AdminDashboard() {
 
                                         type="submit"
 
-                                        className="bg-black/80 hover:bg-black/80 text-white px-4 py-2 rounded-full"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
 
                                     >
 
