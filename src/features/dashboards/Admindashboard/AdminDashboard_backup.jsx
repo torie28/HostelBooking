@@ -14,10 +14,6 @@ export function AdminDashboard() {
 
     const [activeTab, setActiveTab] = useState('overview');
 
-    const [isTransitioning, setIsTransitioning] = useState(false);
-
-    const [previousTab, setPreviousTab] = useState('overview');
-
     const [hostels, setHostels] = useState([]);
 
     const [rooms, setRooms] = useState([]);
@@ -999,34 +995,6 @@ export function AdminDashboard() {
     };
 
 
-    const handleTabChange = (newTab) => {
-
-        if (newTab !== activeTab && !isTransitioning) {
-
-            setIsTransitioning(true);
-
-            setPreviousTab(activeTab);
-
-
-
-            setTimeout(() => {
-
-                setActiveTab(newTab);
-
-                setTimeout(() => {
-
-                    setIsTransitioning(false);
-
-                }, 50);
-
-            }, 150);
-
-        }
-
-    };
-
-
-
     const handleLogout = () => {
 
         localStorage.removeItem('auth_token');
@@ -1137,270 +1105,9 @@ export function AdminDashboard() {
 
         return (
 
-            <div className="min-h-screen flex items-center justify-center bg-white animate-fade-in">
+            <div className="min-h-screen flex items-center justify-center">
 
-                <div className="relative w-32 h-32 animate-scale-in">
-
-                    {/* Central glowing core */}
-
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-gray-500 rounded-full blur-sm animate-pulse"></div>
-
-
-
-                    {/* Spherical orbiting dots */}
-
-                    <div className="absolute inset-0 animate-spin-slow">
-
-                        {/* Dot 1 - Top orbit */}
-
-                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-400 rounded-full blur-sm animate-pulse"></div>
-
-
-
-                        {/* Dot 2 - Right orbit */}
-
-                        <div className="absolute top-1/2 right-4 transform -translate-y-1/2 w-2 h-2 bg-gray-400 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-
-
-
-                        {/* Dot 3 - Bottom orbit */}
-
-                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-400 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-
-
-
-                        {/* Dot 4 - Left orbit */}
-
-                        <div className="absolute top-1/2 left-4 transform -translate-y-1/2 w-2 h-2 bg-gray-400 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.6s' }}></div>
-
-                    </div>
-
-
-
-                    {/* Secondary rotating layer with different speed */}
-
-                    <div className="absolute inset-0 animate-spin-reverse">
-
-                        {/* Dot 5 - Diagonal top-right */}
-
-                        <div className="absolute top-12 right-12 w-1.5 h-1.5 bg-gray-300 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.1s' }}></div>
-
-
-
-                        {/* Dot 6 - Diagonal bottom-right */}
-
-                        <div className="absolute bottom-12 right-12 w-1.5 h-1.5 bg-gray-300 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.3s' }}></div>
-
-
-
-                        {/* Dot 7 - Diagonal bottom-left */}
-
-                        <div className="absolute bottom-12 left-12 w-1.5 h-1.5 bg-gray-300 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-
-
-
-                        {/* Dot 8 - Diagonal top-left */}
-
-                        <div className="absolute top-12 left-12 w-1.5 h-1.5 bg-gray-300 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.7s' }}></div>
-
-                    </div>
-
-
-
-                    {/* Tertiary rotating layer for depth */}
-
-                    <div className="absolute inset-0 animate-spin-medium">
-
-                        {/* Additional dots for spherical effect */}
-
-                        <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-gray-200 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.15s' }}></div>
-
-
-
-                        <div className="absolute top-1/4 right-1/4 w-1 h-1 bg-gray-200 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.35s' }}></div>
-
-
-
-                        <div className="absolute bottom-1/4 right-1/4 w-1 h-1 bg-gray-200 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.55s' }}></div>
-
-
-
-                        <div className="absolute bottom-1/4 left-1/4 w-1 h-1 bg-gray-200 rounded-full blur-sm animate-pulse" style={{ animationDelay: '0.75s' }}></div>
-
-                    </div>
-
-
-
-                    {/* Loading text */}
-
-                    <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center">
-
-                        {/* <div className="text-gray-800 text-lg font-light tracking-wider animate-pulse">Loading System</div> */}
-
-                        <div className="text-black/80 text-sm font-light tracking-widest mt-2 opacity-75 animate-heartbeat">Hostel Booking App</div>
-
-                    </div>
-
-                </div>
-
-
-
-
-                <style jsx>{`
-
-                    @keyframes spin-slow {
-
-                        from { transform: rotate(0deg); }
-
-                        to { transform: rotate(360deg); }
-
-                    }
-
-                    
-
-                    @keyframes spin-reverse {
-
-                        from { transform: rotate(360deg); }
-
-                        to { transform: rotate(0deg); }
-
-                    }
-
-                    
-
-                    @keyframes spin-medium {
-
-                        from { transform: rotate(0deg); }
-
-                        to { transform: rotate(-360deg); }
-
-                    }
-
-                    
-
-                    @keyframes fade-in {
-
-                        from { 
-
-                            opacity: 0;
-
-                        }
-
-                        to { 
-
-                            opacity: 1;
-
-                        }
-
-                    }
-
-                    
-
-                    @keyframes scale-in {
-
-                        from { 
-
-                            opacity: 0;
-
-                            transform: scale(0.8);
-
-                        }
-
-                        to { 
-
-                            opacity: 1;
-
-                            transform: scale(1);
-
-                        }
-
-                    }
-
-                    
-
-                    @keyframes heartbeat {
-
-                        0% { 
-
-                            transform: scale(1);
-
-                        }
-
-                        14% { 
-
-                            transform: scale(1.1);
-
-                        }
-
-                        28% { 
-
-                            transform: scale(1);
-
-                        }
-
-                        42% { 
-
-                            transform: scale(1.1);
-
-                        }
-
-                        70% { 
-
-                            transform: scale(1);
-
-                        }
-
-                    }
-
-                    
-
-                    .animate-spin-slow {
-
-                        animation: spin-slow 1s linear infinite;
-
-                    }
-
-                    
-
-                    .animate-spin-reverse {
-
-                        animation: spin-reverse 1s linear infinite;
-
-                    }
-
-                    
-
-                    .animate-spin-medium {
-
-                        animation: spin-medium 1s linear infinite;
-
-                    }
-
-                    
-
-                    .animate-fade-in {
-
-                        animation: fade-in 0.8s ease-out;
-
-                    }
-
-                    
-
-                    .animate-scale-in {
-
-                        animation: scale-in 0.6s ease-out 0.2s both;
-
-                    }
-
-                    
-
-                    .animate-heartbeat {
-
-                        animation: heartbeat 1.5s ease-in-out 0.8s infinite;
-
-                    }
-
-                `}</style>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
 
             </div>
 
@@ -1520,9 +1227,7 @@ export function AdminDashboard() {
 
                 {/* Tab Navigation */}
 
-                <div className={`bg-white rounded-lg shadow mb-6 transition-all duration-300 ease-in-out ${isTransitioning ? 'transform scale-[0.98] opacity-80' : 'transform scale-100 opacity-100'
-
-                    }`}>
+                <div className="bg-white rounded-lg shadow mb-6">
 
                     <div className="border-b border-gray-200">
 
@@ -1534,15 +1239,15 @@ export function AdminDashboard() {
 
                                     key={tab}
 
-                                    onClick={() => handleTabChange(tab)}
+                                    onClick={() => setActiveTab(tab)}
 
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm capitalize transition-all duration-200 ease-in-out transform ${activeTab === tab
+                                    className={`py-4 px-1 border-b-2 font-medium text-sm capitalize ${activeTab === tab
 
-                                        ? 'border-blue-500 text-blue-600 transform -translate-y-0.5 shadow-sm'
+                                        ? 'border-blue-500 text-blue-600'
 
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:transform -translate-y-0.5'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
 
-                                        } ${isTransitioning && tab === previousTab ? 'opacity-50 transform scale-95' : ''}`}
+                                        }`}
 
                                 >
 
@@ -1564,9 +1269,7 @@ export function AdminDashboard() {
 
                 {activeTab === 'overview' && (
 
-                    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-500 ease-in-out transform ${isTransitioning ? 'opacity-0 translate-x-4 scale-95' : 'opacity-100 translate-x-0 scale-100'
-
-                        }`}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
                         <div className="bg-white overflow-hidden shadow rounded-lg">
 
@@ -1714,9 +1417,7 @@ export function AdminDashboard() {
 
                 {activeTab === 'hostels' && (
 
-                    <div className={`bg-white shadow rounded-lg transition-all duration-500 ease-in-out transform ${isTransitioning ? 'opacity-0 translate-x-4 scale-95' : 'opacity-100 translate-x-0 scale-100'
-
-                        }`}>
+                    <div className="bg-white shadow rounded-lg">
 
                         <div className="px-4 py-5 sm:p-6">
 
@@ -1728,7 +1429,7 @@ export function AdminDashboard() {
 
                                     onClick={() => setShowAddHostelModal(true)}
 
-                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-black/80 hover:bg-black/80"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
 
                                 >
 
@@ -1842,9 +1543,7 @@ export function AdminDashboard() {
 
                 {activeTab === 'rooms' && (
 
-                    <div className={`bg-white shadow rounded-lg transition-all duration-500 ease-in-out transform ${isTransitioning ? 'opacity-0 translate-x-4 scale-95' : 'opacity-100 translate-x-0 scale-100'
-
-                        }`}>
+                    <div className="bg-white shadow rounded-lg">
 
                         <div className="px-4 py-5 sm:p-6">
 
@@ -1856,7 +1555,7 @@ export function AdminDashboard() {
 
                                     onClick={() => setShowAddRoomModal(true)}
 
-                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-black/80 hover:bg-black/80"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
 
                                 >
 
@@ -1865,133 +1564,6 @@ export function AdminDashboard() {
                                 </button>
 
                             </div>
-
-                            {/* Room Filters */}
-
-                            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                                    {/* Gender Filter */}
-
-                                    <div>
-
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-
-                                            Filter by Gender
-
-                                        </label>
-
-                                        <select
-
-                                            value={roomGenderFilter}
-
-                                            onChange={(e) => {
-
-                                                setRoomGenderFilter(e.target.value);
-
-                                                setRoomHostelFilter('');
-
-                                            }}
-
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-black/60"
-
-                                        >
-
-                                            <option value="">All Genders</option>
-
-                                            {genders.map((gender) => (
-
-                                                <option key={gender.value} value={gender.value}>
-
-                                                    {gender.label}
-
-                                                </option>
-
-                                            ))}
-
-                                        </select>
-
-                                    </div>
-
-
-
-                                    {/* Hostel Filter */}
-
-                                    <div>
-
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-
-                                            Filter by Hostel
-
-                                        </label>
-
-                                        <select
-
-                                            value={roomHostelFilter}
-
-                                            onChange={(e) => setRoomHostelFilter(e.target.value)}
-
-                                            disabled={!roomGenderFilter}
-
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-black/60 disabled:bg-gray-100 disabled:cursor-not-allowed"
-
-                                        >
-
-                                            <option value="">All Hostels</option>
-
-                                            {hostels
-
-                                                .filter(hostel => !roomGenderFilter || hostel.gender === roomGenderFilter)
-
-                                                .map((hostel) => (
-
-                                                    <option key={hostel.id} value={hostel.id}>
-
-                                                        {hostel.name}
-
-                                                    </option>
-
-                                                ))}
-
-                                        </select>
-
-                                    </div>
-
-                                </div>
-
-
-
-                                {/* Reset Filters Button */}
-
-                                {(roomGenderFilter || roomHostelFilter) && (
-
-                                    <div className="mt-4">
-
-                                        <button
-
-                                            onClick={() => {
-
-                                                setRoomGenderFilter('');
-
-                                                setRoomHostelFilter('');
-
-                                            }}
-
-                                            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50"
-
-                                        >
-
-                                            Reset Filters
-
-                                        </button>
-
-                                    </div>
-
-                                )}
-
-                            </div>
-
 
                             <div className="overflow-x-auto">
 
@@ -2021,7 +1593,7 @@ export function AdminDashboard() {
 
                                     <tbody className="bg-white divide-y divide-gray-200">
 
-                                        {getFilteredRooms().map((room) => (
+                                        {rooms.map((room) => (
 
                                             <tr key={room.id}>
 
@@ -2109,9 +1681,7 @@ export function AdminDashboard() {
 
                 {activeTab === 'beds' && (
 
-                    <div className={`bg-white shadow rounded-lg transition-all duration-500 ease-in-out transform ${isTransitioning ? 'opacity-0 translate-x-4 scale-95' : 'opacity-100 translate-x-0 scale-100'
-
-                        }`}>
+                    <div className="bg-white shadow rounded-lg">
 
                         <div className="px-4 py-5 sm:p-6">
 
@@ -2483,9 +2053,7 @@ export function AdminDashboard() {
 
                 {activeTab === 'students' && (
 
-                    <div className={`bg-white shadow rounded-lg transition-all duration-500 ease-in-out transform ${isTransitioning ? 'opacity-0 translate-x-4 scale-95' : 'opacity-100 translate-x-0 scale-100'
-
-                        }`}>
+                    <div className="bg-white shadow rounded-lg">
 
                         <div className="px-4 py-5 sm:p-6">
 
@@ -2699,7 +2267,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewHostel({ ...newHostel, name: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2717,7 +2285,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewHostel({ ...newHostel, gender: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2751,7 +2319,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewHostel({ ...newHostel, capacity: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2767,7 +2335,7 @@ export function AdminDashboard() {
 
                                         onClick={() => setShowAddHostelModal(false)}
 
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-full"
+                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
 
                                     >
 
@@ -2779,7 +2347,7 @@ export function AdminDashboard() {
 
                                         type="submit"
 
-                                        className="bg-black/80 hover:bg-black/80 text-white px-4 py-2 rounded-full"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
 
                                     >
 
@@ -2825,7 +2393,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, hostel_id: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2855,7 +2423,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, room_number: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2875,7 +2443,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, floor_number: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2895,7 +2463,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, capacity: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2913,7 +2481,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, status: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -2937,7 +2505,7 @@ export function AdminDashboard() {
 
                                         onClick={() => setShowAddRoomModal(false)}
 
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-full"
+                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
 
                                     >
 
@@ -2949,7 +2517,7 @@ export function AdminDashboard() {
 
                                         type="submit"
 
-                                        className="bg-black/80 hover:bg-black/80 text-white px-4 py-2 rounded-full"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
 
                                     >
 
@@ -2995,7 +2563,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, hostel_id: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3025,7 +2593,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, room_number: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3045,7 +2613,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, floor_number: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3065,7 +2633,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, capacity: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3083,7 +2651,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewRoom({ ...newRoom, status: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3107,7 +2675,7 @@ export function AdminDashboard() {
 
                                         onClick={() => setShowEditRoomModal(false)}
 
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-full"
+                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
 
                                     >
 
@@ -3119,7 +2687,7 @@ export function AdminDashboard() {
 
                                         type="submit"
 
-                                        className="bg-black/80 hover:bg-black/80 text-white px-4 py-2 rounded-full"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
 
                                     >
 
@@ -3165,7 +2733,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewBed({ ...newBed, room_id: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3173,7 +2741,7 @@ export function AdminDashboard() {
 
                                         <option value="">Select Room</option>
 
-                                        {getFilteredRooms().map((room) => (
+                                        {rooms.map((room) => (
 
                                             <option key={room.id} value={room.id}>{room.room_number}</option>
 
@@ -3195,7 +2763,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewBed({ ...newBed, bed_number: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3213,7 +2781,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewBed({ ...newBed, status: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3235,7 +2803,7 @@ export function AdminDashboard() {
 
                                         onClick={() => setShowAddBedModal(false)}
 
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-full"
+                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
 
                                     >
 
@@ -3247,7 +2815,7 @@ export function AdminDashboard() {
 
                                         type="submit"
 
-                                        className="bg-black/80 hover:bg-black/80 text-white px-4 py-2 rounded-full"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
 
                                     >
 
@@ -3295,7 +2863,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setEditingBedData({ ...editingBedData, bed_number: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3313,7 +2881,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setEditingBedData({ ...editingBedData, room_id: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3321,7 +2889,7 @@ export function AdminDashboard() {
 
                                         <option value="">Select Room</option>
 
-                                        {getFilteredRooms().map((room) => (
+                                        {rooms.map((room) => (
 
                                             <option key={room.id} value={room.id}>{room.room_number}</option>
 
@@ -3341,7 +2909,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setEditingBedData({ ...editingBedData, status: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3369,7 +2937,7 @@ export function AdminDashboard() {
 
                                         }}
 
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-full"
+                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
 
                                     >
 
@@ -3381,7 +2949,7 @@ export function AdminDashboard() {
 
                                         type="submit"
 
-                                        className="bg-black/80 hover:bg-black/80 text-white px-4 py-2 rounded-full"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
 
                                     >
 
@@ -3429,7 +2997,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewHostel({ ...newHostel, name: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3447,7 +3015,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewHostel({ ...newHostel, gender: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3481,7 +3049,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewHostel({ ...newHostel, capacity: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3499,7 +3067,7 @@ export function AdminDashboard() {
 
                                         onChange={(e) => setNewHostel({ ...newHostel, status: e.target.value })}
 
-                                        className="mt-1 block w-full border border-gray-300 rounded-full shadow-sm p-2"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
 
                                         required
 
@@ -3531,7 +3099,7 @@ export function AdminDashboard() {
 
                                         }}
 
-                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-full"
+                                        className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
 
                                     >
 
@@ -3543,7 +3111,7 @@ export function AdminDashboard() {
 
                                         type="submit"
 
-                                        className="bg-black/80 hover:bg-black/80 text-white px-4 py-2 rounded-full"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
 
                                     >
 
