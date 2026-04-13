@@ -14,6 +14,10 @@ export function AdminDashboard() {
 
     const [activeTab, setActiveTab] = useState('overview');
 
+    const [isTransitioning, setIsTransitioning] = useState(false);
+
+    const [previousTab, setPreviousTab] = useState('overview');
+
     const [hostels, setHostels] = useState([]);
 
     const [rooms, setRooms] = useState([]);
@@ -995,6 +999,34 @@ export function AdminDashboard() {
     };
 
 
+    const handleTabChange = (newTab) => {
+
+        if (newTab !== activeTab && !isTransitioning) {
+
+            setIsTransitioning(true);
+
+            setPreviousTab(activeTab);
+
+
+
+            setTimeout(() => {
+
+                setActiveTab(newTab);
+
+                setTimeout(() => {
+
+                    setIsTransitioning(false);
+
+                }, 50);
+
+            }, 150);
+
+        }
+
+    };
+
+
+
     const handleLogout = () => {
 
         localStorage.removeItem('auth_token');
@@ -1227,7 +1259,9 @@ export function AdminDashboard() {
 
                 {/* Tab Navigation */}
 
-                <div className="bg-white rounded-lg shadow mb-6">
+                <div className={`bg-white rounded-lg shadow mb-6 transition-all duration-300 ease-in-out ${isTransitioning ? 'transform scale-[0.98] opacity-80' : 'transform scale-100 opacity-100'
+
+                    }`}>
 
                     <div className="border-b border-gray-200">
 
@@ -1239,15 +1273,15 @@ export function AdminDashboard() {
 
                                     key={tab}
 
-                                    onClick={() => setActiveTab(tab)}
+                                    onClick={() => handleTabChange(tab)}
 
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm capitalize ${activeTab === tab
+                                    className={`py-4 px-1 border-b-2 font-medium text-sm capitalize transition-all duration-200 ease-in-out transform ${activeTab === tab
 
-                                        ? 'border-blue-500 text-blue-600'
+                                            ? 'border-blue-500 text-blue-600 transform -translate-y-0.5 shadow-sm'
 
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:transform -translate-y-0.5'
 
-                                        }`}
+                                        } ${isTransitioning && tab === previousTab ? 'opacity-50 transform scale-95' : ''}`}
 
                                 >
 
@@ -1269,7 +1303,9 @@ export function AdminDashboard() {
 
                 {activeTab === 'overview' && (
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-500 ease-in-out transform ${isTransitioning ? 'opacity-0 translate-x-4 scale-95' : 'opacity-100 translate-x-0 scale-100'
+
+                        }`}>
 
                         <div className="bg-white overflow-hidden shadow rounded-full">
 
@@ -1417,7 +1453,9 @@ export function AdminDashboard() {
 
                 {activeTab === 'hostels' && (
 
-                    <div className="bg-white shadow rounded-lg">
+                    <div className={`bg-white shadow rounded-lg transition-all duration-500 ease-in-out transform ${isTransitioning ? 'opacity-0 translate-x-4 scale-95' : 'opacity-100 translate-x-0 scale-100'
+
+                        }`}>
 
                         <div className="px-4 py-5 sm:p-6">
 
@@ -1543,7 +1581,9 @@ export function AdminDashboard() {
 
                 {activeTab === 'rooms' && (
 
-                    <div className="bg-white shadow rounded-lg">
+                    <div className={`bg-white shadow rounded-lg transition-all duration-500 ease-in-out transform ${isTransitioning ? 'opacity-0 translate-x-4 scale-95' : 'opacity-100 translate-x-0 scale-100'
+
+                        }`}>
 
                         <div className="px-4 py-5 sm:p-6">
 
@@ -1808,7 +1848,9 @@ export function AdminDashboard() {
 
                 {activeTab === 'beds' && (
 
-                    <div className="bg-white shadow rounded-lg">
+                    <div className={`bg-white shadow rounded-lg transition-all duration-500 ease-in-out transform ${isTransitioning ? 'opacity-0 translate-x-4 scale-95' : 'opacity-100 translate-x-0 scale-100'
+
+                        }`}>
 
                         <div className="px-4 py-5 sm:p-6">
 
@@ -2180,7 +2222,9 @@ export function AdminDashboard() {
 
                 {activeTab === 'students' && (
 
-                    <div className="bg-white shadow rounded-lg">
+                    <div className={`bg-white shadow rounded-lg transition-all duration-500 ease-in-out transform ${isTransitioning ? 'opacity-0 translate-x-4 scale-95' : 'opacity-100 translate-x-0 scale-100'
+
+                        }`}>
 
                         <div className="px-4 py-5 sm:p-6">
 
