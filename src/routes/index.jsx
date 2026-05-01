@@ -5,6 +5,7 @@ import NotFound from "../pages/components/PageNotfound";
 import { StudentDashboard } from "../features/dashboards/studentdashboard/StudentDashboard";
 import { AdminDashboard } from "../features/dashboards/Admindashboard/AdminDashboard";
 import ProtectedRoute from "../components/ProtectedRoute";
+import SMSTest from "../components/SMSTest";
 
 const router = createBrowserRouter([
     {
@@ -30,6 +31,10 @@ const router = createBrowserRouter([
                 <AdminDashboard />
             </ProtectedRoute>
         )
+    },
+    {
+        path: "/sms-test",
+        element: <SMSTest />,
     },
     {
         path: "*",

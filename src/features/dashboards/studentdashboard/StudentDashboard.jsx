@@ -139,50 +139,15 @@ export function StudentDashboard() {
 
             let studentBookings = [];
 
-            // First try: Get bookings by student ID
+            // Get bookings by student ID (primary method)
             try {
                 if (user.id) {
-                    console.log('Trying to fetch by user ID:', user.id);
+                    console.log('Fetching bookings by user ID:', user.id);
                     studentBookings = await bookingApi.getByStudent(user.id);
                     console.log('Bookings by user ID:', studentBookings);
                 }
             } catch (error) {
                 console.log('Failed to fetch by user ID:', error.message);
-            }
-
-            // Second try: If no bookings found or API failed, try fetching all and filter by admission number
-            if (!studentBookings || studentBookings.length === 0) {
-                try {
-                    console.log('Trying to fetch all bookings and filter by admission number');
-                    const allBookings = await bookingApi.getAll();
-                    console.log('All bookings:', allBookings);
-
-                    if (user.admissionNumber) {
-                        studentBookings = allBookings.filter(booking =>
-                            booking.admission_number === user.admissionNumber
-                        );
-                        console.log('Filtered bookings by admission number:', studentBookings);
-                    }
-                } catch (error) {
-                    console.log('Failed to fetch all bookings:', error.message);
-                }
-            }
-
-            // Third try: Filter by student name if still no results
-            if (!studentBookings || studentBookings.length === 0) {
-                try {
-                    console.log('Trying to fetch all bookings and filter by student name');
-                    const allBookings = await bookingApi.getAll();
-
-                    if (user.name) {
-                        studentBookings = allBookings.filter(booking =>
-                            booking.student_name === user.name
-                        );
-                        console.log('Filtered bookings by student name:', studentBookings);
-                    }
-                } catch (error) {
-                    console.log('Failed to fetch all bookings for name filter:', error.message);
-                }
             }
 
             if (studentBookings && studentBookings.length > 0) {
@@ -191,38 +156,29 @@ export function StudentDashboard() {
                 const latestBooking = studentBookings[0];
                 console.log('Latest booking data:', latestBooking);
 
-                // Fetch hostel details to get the name
+                // Get hostel name through bed relationship
                 let hostelName = 'Unknown Hostel';
-                try {
-                    if (latestBooking.hostel_id) {
-                        console.log('Looking for hostel ID:', latestBooking.hostel_id);
+                let roomNumber = 'Unknown Room';
 
-                        // First try to find in already loaded hostels
-                        const existingHostel = hostels.find(h => h.id === latestBooking.hostel_id);
-                        if (existingHostel) {
-                            hostelName = existingHostel.name;
-                            console.log('Found hostel in loaded data:', hostelName);
-                        } else {
-                            // If not found, fetch from API
-                            console.log('Fetching hostel details from API for ID:', latestBooking.hostel_id);
-                            const hostelDetails = await hostelApi.getById(latestBooking.hostel_id);
-                            hostelName = hostelDetails.name || 'Unknown Hostel';
-                            console.log('Hostel name from API:', hostelName);
-                        }
+                try {
+                    if (latestBooking.bed && latestBooking.bed.room && latestBooking.bed.room.hostel) {
+                        hostelName = latestBooking.bed.room.hostel.name;
+                        roomNumber = latestBooking.bed.room.room_number;
+                        console.log('Found hostel and room through bed relationship:', hostelName, roomNumber);
                     }
                 } catch (error) {
-                    console.log('Failed to get hostel name:', error.message);
+                    console.log('Error getting hostel/room details:', error);
                 }
 
                 const displayData = {
-                    studentName: latestBooking.student_name,
-                    admissionNumber: latestBooking.admission_number,
+                    studentName: latestBooking.student_name || (latestBooking.student && latestBooking.student.name),
+                    admissionNumber: latestBooking.admission_number || (latestBooking.student && latestBooking.student.admission_number),
                     hostel: hostelName,
-                    room: latestBooking.room_number,
+                    room: roomNumber,
                     bed: latestBooking.bed_id,
                     controlNumber: latestBooking.controlnumber,
                     amount: latestBooking.amount,
-                    academicYear: latestBooking.academic_year,
+                    academicYear: latestBooking.academic_year || (latestBooking.student && latestBooking.student.academic_year),
                     status: latestBooking.status === 'active' ? 'booked' : 'paid',
                     timestamp: latestBooking.booking_date,
                     id: latestBooking.id
@@ -389,13 +345,9 @@ export function StudentDashboard() {
         try {
             // Prepare booking data for database
             const bookingData = {
-                hostel_id: selectedHostel.id,
-                room_number: selectedRoom.room_number,
+                student_id: user.id, // Use user ID instead of separate student fields
                 bed_id: selectedBed, // Assuming selectedBed contains the bed ID
                 status: 'active', // Using 'active' as per database enum
-                academic_year: academicYear,
-                student_name: studentName,
-                admission_number: admissionNumber,
                 amount: parseFloat(amount),
                 controlnumber: controlNumber,
                 booking_date: new Date().toISOString().split('T')[0] // Format as YYYY-MM-DD

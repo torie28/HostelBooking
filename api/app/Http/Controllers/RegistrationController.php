@@ -18,6 +18,8 @@ class RegistrationController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'admission_number' => 'required|string|max:255|unique:users',
             'level_id' => 'required|exists:levels,id',
+            'academic_year' => 'required|string|max:20',
+            'gender' => 'required|string|max:10',
             'phone_number' => 'required|string|max:20',
             'password' => 'required|string|min:8|confirmed',
         ]);
@@ -37,6 +39,8 @@ class RegistrationController extends Controller
                 'admission_number' => $request->admission_number,
                 'level' => $request->level_id ? Level::find($request->level_id)->name : null,
                 'level_id' => $request->level_id,
+                'academic_year' => $request->academic_year,
+                'gender' => $request->gender,
                 'phone_number' => $request->phone_number,
                 'password' => Hash::make($request->password),
             ]);

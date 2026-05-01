@@ -14,6 +14,7 @@ class GenderController extends Controller
         $genders = [
             ['value' => 'male', 'label' => 'Male'],
             ['value' => 'female', 'label' => 'Female'],
+            ['value' => 'other', 'label' => 'Other'],
         ];
 
         return response()->json($genders);
