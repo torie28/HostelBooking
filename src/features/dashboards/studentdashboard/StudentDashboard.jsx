@@ -102,7 +102,7 @@ export function StudentDashboard() {
     const [controlNumberGenerated, setControlNumberGenerated] = useState(false);
     const [studentBooking, setStudentBooking] = useState(null);
     const [amount, setAmount] = useState('');
-    const [academicYear, setAcademicYear] = useState('');
+    // const [academicYear, setAcademicYear] = useState('');
     const [showRoomFullModal, setShowRoomFullModal] = useState(false);
     const navigate = useNavigate();
 
@@ -125,6 +125,31 @@ export function StudentDashboard() {
         };
 
         return convert(num);
+    };
+
+    // Fetch user academic year from API
+    const fetchUserAcademicYear = async () => {
+        if (!user || !user.id) return null;
+
+        try {
+            const response = await fetch(`http://localhost:8000/api/users/${user.id}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('🎯 Fetched user data:', result);
+                return result.user ? result.user.academic_year : null;
+            }
+        } catch (error) {
+            console.error('Error fetching user academic year:', error);
+        }
+
+        return null;
     };
 
     // Fetch student-specific booking from database
@@ -170,6 +195,23 @@ export function StudentDashboard() {
                     console.log('Error getting hostel/room details:', error);
                 }
 
+                // Debug logging
+                console.log('🔍 User object:', user);
+                console.log('🔍 User academic_year:', user?.academic_year);
+                console.log('🔍 LatestBooking student:', latestBooking.student);
+                console.log('🔍 LatestBooking student academic_year:', latestBooking.student?.academic_year);
+
+                // Try to get academic year from multiple sources
+                let academicYear = user?.academic_year ||
+                    (latestBooking.student && latestBooking.student.academic_year) ||
+                    null;
+
+                // If still not available, fetch it directly
+                if (!academicYear) {
+                    console.log('🔄 Fetching academic year from API...');
+                    academicYear = await fetchUserAcademicYear();
+                }
+
                 const displayData = {
                     studentName: latestBooking.student_name || (latestBooking.student && latestBooking.student.name),
                     admissionNumber: latestBooking.admission_number || (latestBooking.student && latestBooking.student.admission_number),
@@ -178,7 +220,7 @@ export function StudentDashboard() {
                     bed: latestBooking.bed_id,
                     controlNumber: latestBooking.controlnumber,
                     amount: latestBooking.amount,
-                    academicYear: latestBooking.academic_year || (latestBooking.student && latestBooking.student.academic_year),
+                    academicYear: academicYear || 'Not Available',
                     status: latestBooking.status === 'active' ? 'booked' : 'paid',
                     timestamp: latestBooking.booking_date,
                     id: latestBooking.id
@@ -335,7 +377,7 @@ export function StudentDashboard() {
             return;
         }
 
-        if (!selectedHostel || !selectedRoom || !selectedBed || !admissionNumber || !studentName || !amount || !academicYear) {
+        if (!selectedHostel || !selectedRoom || !selectedBed || !admissionNumber || !studentName || !amount) {
             alert('Please fill in all required fields');
             return;
         }
@@ -343,6 +385,16 @@ export function StudentDashboard() {
         setIsLoading(true);
 
         try {
+            // Get academic year from user or fetch it if not available
+            let academicYear = user.academic_year;
+            if (!academicYear) {
+                console.log('🔄 Fetching academic year for booking...');
+                academicYear = await fetchUserAcademicYear();
+                if (!academicYear) {
+                    academicYear = 'Not Available'; // Fallback
+                }
+            }
+
             // Prepare booking data for database
             const bookingData = {
                 student_id: user.id, // Use user ID instead of separate student fields
@@ -350,7 +402,9 @@ export function StudentDashboard() {
                 status: 'active', // Using 'active' as per database enum
                 amount: parseFloat(amount),
                 controlnumber: controlNumber,
-                booking_date: new Date().toISOString().split('T')[0] // Format as YYYY-MM-DD
+                booking_date: new Date().toISOString().split('T')[0], // Format as YYYY-MM-DD
+                admission_number: admissionNumber,
+                academic_year: academicYear, // Add academic year
             };
 
             console.log('Booking data:', bookingData);
@@ -367,7 +421,7 @@ export function StudentDashboard() {
                 bed: selectedBed,
                 controlNumber,
                 amount,
-                academicYear,
+                academicYear: academicYear,
                 status: 'booked', // Keep 'booked' for frontend display
                 timestamp: new Date().toISOString(),
                 id: savedBooking.id // Include database ID
@@ -413,7 +467,7 @@ export function StudentDashboard() {
         setControlNumber('');
         // Reset new fields
         setAmount('');
-        setAcademicYear('');
+        // setAcademicYear('');
         // Show booking form
         setShowBookingForm(true);
     };
@@ -610,7 +664,7 @@ export function StudentDashboard() {
                         <div class="control-section">
                             <p><strong>Bill Reference:</strong> ${studentBooking.admissionNumber}</p>
                             <p><strong>Payment Control No:</strong> ${studentBooking.controlNumber}</p>
-                            <p><strong>Academic Year:</strong> ${studentBooking.academicYear}</p>
+                            <p><strong>Academic Year:</strong> ${studentBooking.academicYear || 'Not Available'}</p>
                         </div>
 
                         <div class="receipt-details">
@@ -1316,10 +1370,10 @@ export function StudentDashboard() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            {/* <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 Academic Year *
-                                            </label>
-                                            <select
+                                            </label> */}
+                                            {/* <select
                                                 value={academicYear}
                                                 onChange={(e) => setAcademicYear(e.target.value)}
                                                 required
@@ -1329,7 +1383,7 @@ export function StudentDashboard() {
                                                 <option value="2024/2025">2024/2025</option>
                                                 <option value="2025/2026">2025/2026</option>
                                                 <option value="2026/2027">2026/2027</option>
-                                            </select>
+                                            </select> */}
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">

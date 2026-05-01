@@ -13,6 +13,8 @@ class HostelBooking extends Model
         'amount',
         'controlnumber',
         'booking_date',
+        'admission_number',
+        // 'academic_year',
     ];
 
     protected $casts = [

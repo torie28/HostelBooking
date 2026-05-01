@@ -49,6 +49,7 @@ Route::post('/bookings', [HostelBookingController::class, 'storeFromFrontend']);
 Route::get('/bookings', [HostelBookingController::class, 'index']);
 Route::get('/bookings/control-number/{controlNumber}', [HostelBookingController::class, 'getByControlNumber']);
 Route::get('/bookings/student/{studentId}', [HostelBookingController::class, 'getByStudent']);
+Route::get('/users/{id}', [HostelBookingController::class, 'getUserById']);
 Route::put('/bookings/{id}/status', [HostelBookingController::class, 'updateStatus']);
 
 // Payment Hostel routes

@@ -178,6 +178,8 @@ class HostelBookingController extends Controller
             'amount' => 'required|numeric|min:0',
             'controlnumber' => 'required|string|unique:hostel_bookings,controlnumber',
             'booking_date' => 'required|date',
+            'admission_number' => 'required|string',
+            'academic_year' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -208,6 +210,8 @@ class HostelBookingController extends Controller
                 'amount' => $request->amount,
                 'controlnumber' => $request->controlnumber,
                 'booking_date' => $request->booking_date,
+                'admission_number' => $request->admission_number,
+                'academic_year' => $request->academic_year,
             ]);
 
             // Create payment record automatically when booking is successful
@@ -257,7 +261,7 @@ class HostelBookingController extends Controller
                 'id' => $booking->id,
                 'success' => true,
                 'message' => 'Booking created successfully',
-                'booking' => $booking->load(['bed.room.hostel'])
+                'booking' => $booking->load(['student', 'bed.room.hostel'])
             ], 201);
 
         } catch (\Exception $e) {
@@ -356,6 +360,31 @@ class HostelBookingController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Update failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getUserById($id)
+    {
+        try {
+            $user = User::find($id);
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not found'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'user' => $user
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch user: ' . $e->getMessage()
             ], 500);
         }
     }
