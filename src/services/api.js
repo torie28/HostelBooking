@@ -109,19 +109,58 @@ export const genderApi = {
 // Payment API functions
 export const paymentApi = {
     // Generate control number
-    generateControlNumber: (paymentData) => apiRequest('/payments/generate-control-number', {
-        method: 'POST',
-        body: JSON.stringify(paymentData)
-    }),
+    generateControlNumber: async (paymentData) => {
+        const result = await apiRequest('/payments/generate-control-number', {
+            method: 'POST',
+            body: JSON.stringify(paymentData)
+        });
+
+        // Send payment reminder SMS after generating control number
+        if (result.success && paymentData.phoneNumber) {
+            try {
+                const { default: smsService } = await import('./smsService');
+                await smsService.sendPaymentReminder(
+                    smsService.formatPhoneNumber(paymentData.phoneNumber),
+                    {
+                        studentName: paymentData.studentName,
+                        controlNumber: result.controlNumber,
+                        amount: paymentData.amount,
+                        dueDate: paymentData.dueDate
+                    }
+                );
+            } catch (smsError) {
+                console.error('Failed to send payment reminder SMS:', smsError);
+            }
+        }
+
+        return result;
+    },
 
     // Check payment status
     checkStatus: (controlNumber) => apiRequest(`/payments/check-status/${controlNumber}`),
 
     // Verify payment
-    verifyPayment: (paymentData) => apiRequest('/payments/verify', {
-        method: 'POST',
-        body: JSON.stringify(paymentData)
-    }),
+    verifyPayment: async (paymentData) => {
+        const result = await apiRequest('/payments/verify', {
+            method: 'POST',
+            body: JSON.stringify(paymentData)
+        });
+
+        // Send confirmation SMS after successful payment
+        if (result.success && paymentData.phoneNumber && result.status === 'completed') {
+            try {
+                const { default: smsService } = await import('./smsService');
+                await smsService.sendSMS(
+                    smsService.formatPhoneNumber(paymentData.phoneNumber),
+                    `Payment Confirmation:\n\nDear ${paymentData.studentName},\n\nYour payment of ${paymentData.amount} has been successfully received.\nControl Number: ${paymentData.controlNumber}\nTransaction ID: ${result.transactionId}\n\nThank you for your payment!`
+                );
+            } catch (smsError) {
+                console.error('Failed to send payment confirmation SMS:', smsError);
+            }
+        }
+
+        return result;
+    },
 
     // Get student payment amount
     getStudentAmount: (admissionNumber) => apiRequest(`/payment-hostels/student-amount/${admissionNumber}`),
@@ -130,10 +169,59 @@ export const paymentApi = {
 // Booking API functions
 export const bookingApi = {
     // Create new booking
-    create: (bookingData) => apiRequest('/bookings', {
-        method: 'POST',
-        body: JSON.stringify(bookingData)
-    }),
+    create: async (bookingData) => {
+        const result = await apiRequest('/bookings', {
+            method: 'POST',
+            body: JSON.stringify(bookingData)
+        });
+
+        console.log('🎯 BOOKING CREATED - Checking notifications...');
+        // Send SMS notification after successful booking
+        console.log('🔍 Notification check:', {
+            success: result.success,
+            hasPhone: !!bookingData.phoneNumber,
+            phone: bookingData.phoneNumber,
+            result
+        });
+
+        if (result.success && bookingData.phoneNumber) {
+            try {
+                const { default: smsService } = await import('./smsService');
+
+                // Send SMS to customer
+                await smsService.sendBookingConfirmation(
+                    smsService.formatPhoneNumber(bookingData.phoneNumber),
+                    {
+                        studentName: bookingData.studentName,
+                        hostelName: bookingData.hostelName,
+                        roomNumber: bookingData.roomNumber,
+                        bedNumber: bookingData.bedNumber,
+                        checkInDate: bookingData.checkInDate,
+                        controlNumber: result.controlNumber || bookingData.controlNumber
+                    }
+                );
+
+                console.log('📱 Sending WhatsApp to admin...');
+                // Send WhatsApp notification to admin
+                await smsService.notifyAdminBooking({
+                    studentName: bookingData.studentName,
+                    hostelName: bookingData.hostelName,
+                    roomNumber: bookingData.roomNumber,
+                    bedNumber: bookingData.bedNumber,
+                    checkInDate: bookingData.checkInDate,
+                    controlNumber: result.controlNumber || bookingData.controlNumber,
+                    phoneNumber: bookingData.phoneNumber
+                });
+                console.log('✅ WhatsApp notification sent successfully!');
+
+            } catch (smsError) {
+                console.error('Failed to send booking notifications:', smsError);
+                // Don't fail the booking if SMS fails
+            }
+        }
+
+        return result;
+    },
 
     // Get booking by control number
     getByControlNumber: (controlNumber) => apiRequest(`/bookings/control-number/${controlNumber}`),
@@ -142,10 +230,35 @@ export const bookingApi = {
     getByStudent: (studentId) => apiRequest(`/bookings/student/${studentId}`),
 
     // Update booking status
-    updateStatus: (bookingId, status) => apiRequest(`/bookings/${bookingId}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ status })
-    }),
+    updateStatus: async (bookingId, status, phoneNumber = null, studentName = null) => {
+        const result = await apiRequest(`/bookings/${bookingId}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status })
+        });
+
+        // Send SMS notification for status changes
+        if (result.success && phoneNumber) {
+            try {
+                const { default: smsService } = await import('./smsService');
+                if (status === 'cancelled') {
+                    await smsService.sendBookingCancellation(
+                        smsService.formatPhoneNumber(phoneNumber),
+                        {
+                            studentName,
+                            hostelName: result.hostelName,
+                            roomNumber: result.roomNumber,
+                            bedNumber: result.bedNumber,
+                            controlNumber: result.controlNumber
+                        }
+                    );
+                }
+            } catch (smsError) {
+                console.error('Failed to send status update SMS:', smsError);
+            }
+        }
+
+        return result;
+    },
 
     // Get all bookings
     getAll: () => apiRequest('/bookings'),

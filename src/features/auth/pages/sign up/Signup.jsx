@@ -7,6 +7,8 @@ export function Signup() {
         name: '',
         admissionNumber: '',
         level: '',
+        academicYear: '',
+        gender: '',
         email: '',
         phoneNumber: '',
         password: '',
@@ -16,11 +18,14 @@ export function Signup() {
     const [isLoading, setIsLoading] = useState(false);
     const [levels, setLevels] = useState([]);
     const [levelsLoading, setLevelsLoading] = useState(true);
+    const [genders, setGenders] = useState([]);
+    const [gendersLoading, setGendersLoading] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
         fetchLevels();
+        fetchGenders();
     }, []);
 
     const fetchLevels = async () => {
@@ -63,6 +68,34 @@ export function Signup() {
         }
     };
 
+    const fetchGenders = async () => {
+        try {
+            const response = await fetch('http://localhost:8000/api/genders');
+            if (response.ok) {
+                const data = await response.json();
+                setGenders(data);
+            } else {
+                console.error('Failed to fetch genders');
+                // Fallback to hardcoded genders if API fails
+                setGenders([
+                    'Male',
+                    'Female',
+                    'Other'
+                ]);
+            }
+        } catch (error) {
+            console.error('Error fetching genders:', error);
+            // Fallback to hardcoded genders if API fails
+            setGenders([
+                'Male',
+                'Female',
+                'Other'
+            ]);
+        } finally {
+            setGendersLoading(false);
+        }
+    };
+
     const validateForm = () => {
         const newErrors = {};
 
@@ -76,6 +109,14 @@ export function Signup() {
 
         if (!formData.level) {
             newErrors.level = 'Academic level is required';
+        }
+
+        if (!formData.academicYear.trim()) {
+            newErrors.academicYear = 'Academic year is required';
+        }
+
+        if (!formData.gender) {
+            newErrors.gender = 'Gender is required';
         }
 
         if (!formData.email.trim()) {
@@ -148,6 +189,8 @@ export function Signup() {
                 email: formData.email,
                 admission_number: formData.admissionNumber,
                 level_id: formData.level,
+                academic_year: formData.academicYear,
+                gender: formData.gender,
                 phone_number: formData.phoneNumber,
                 password: formData.password,
                 password_confirmation: formData.confirmPassword
@@ -258,14 +301,67 @@ export function Signup() {
                                             <option value="">
                                                 {levelsLoading ? 'Loading levels...' : 'Select your level'}
                                             </option>
-                                            {levels.map(level => (
-                                                <option key={level.id || level} value={level.id || level}>
-                                                    {level.name || level}
-                                                </option>
-                                            ))}
+                                            {levels.map(level => {
+                                                const levelValue = level.value || level.id || level;
+                                                const levelLabel = level.label || level.name || level;
+                                                return (
+                                                    <option key={levelValue} value={levelValue}>
+                                                        {levelLabel}
+                                                    </option>
+                                                );
+                                            })}
                                         </select>
                                         {errors.level && (
                                             <p className="mt-1 text-sm text-red-600">{errors.level}</p>
+                                        )}
+                                    </div>
+
+                                    {/* Academic Year */}
+                                    <div>
+                                        <select
+                                            id="academicYear"
+                                            name="academicYear"
+                                            value={formData.academicYear}
+                                            onChange={handleChange}
+                                            className={`w-full px-4 py-2 border rounded-full  focus:border-transparent transition-all ${errors.academicYear ? 'border-red-500' : 'border-gray-300'
+                                                }`}
+                                        >
+                                            <option value="">Select your academic year</option>
+                                            <option value="2022-2023">2022-2023</option>
+                                            <option value="2023-2024">2023-2024</option>
+                                            <option value="2024-2025">2024-2025</option>
+                                        </select>
+                                        {errors.academicYear && (
+                                            <p className="mt-1 text-sm text-red-600">{errors.academicYear}</p>
+                                        )}
+                                    </div>
+
+                                    {/* Gender */}
+                                    <div>
+                                        <select
+                                            id="gender"
+                                            name="gender"
+                                            value={formData.gender}
+                                            onChange={handleChange}
+                                            className={`w-full px-4 py-2 border rounded-full focus:border-transparent transition-all ${errors.gender ? 'border-red-500' : 'border-gray-300'
+                                                }`}
+                                            disabled={isLoading || gendersLoading}
+                                        >
+                                            <option value="">
+                                                {gendersLoading ? 'Loading genders...' : 'Select your gender'}
+                                            </option>
+                                            {genders.map(gender => {
+                                                const genderValue = gender.value || gender.id || gender;
+                                                const genderLabel = gender.label || gender.name || gender;
+                                                return (
+                                                    <option key={genderValue} value={genderValue}>
+                                                        {genderLabel}
+                                                    </option>
+                                                );
+                                            })}
+                                        </select>
+                                        {errors.gender && (
+                                            <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
                                         )}
                                     </div>
                                 </div>

@@ -7,16 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class HostelBooking extends Model
 {
     protected $fillable = [
-        'hostel_id',
-        'room_number',
+        'student_id',
         'bed_id',
         'status',
-        'academic_year',
-        'student_name',
-        'admission_number',
         'amount',
         'controlnumber',
         'booking_date',
+        'admission_number',
+        // 'academic_year',
     ];
 
     protected $casts = [
@@ -25,18 +23,45 @@ class HostelBooking extends Model
     ];
 
     // Relationships
-    public function hostel()
-    {
-        return $this->belongsTo(Hostel::class);
-    }
-
     public function bed()
     {
         return $this->belongsTo(Bed::class);
     }
 
+    // Accessors for getting hostel and room through bed
+    public function getHostelAttribute()
+    {
+        return $this->bed?->room?->hostel;
+    }
+
+    public function getRoomAttribute()
+    {
+        return $this->bed?->room;
+    }
+
     public function student()
     {
-        return $this->belongsTo(User::class, 'admission_number', 'admission_number');
+        return $this->belongsTo(User::class, 'student_id');
+    }
+
+    // Accessors for getting student information through relationship
+    public function getStudentNameAttribute()
+    {
+        return $this->student?->name;
+    }
+
+    public function getStudentEmailAttribute()
+    {
+        return $this->student?->email;
+    }
+
+    public function getAcademicYearAttribute()
+    {
+        return $this->student?->academic_year;
+    }
+
+    public function getAdmissionNumberAttribute()
+    {
+        return $this->student?->admission_number;
     }
 }

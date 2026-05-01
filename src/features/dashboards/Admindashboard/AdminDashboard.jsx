@@ -253,7 +253,7 @@ export function AdminDashboard() {
 
                 id: booking.id,
 
-                name: booking.student_name || booking.student?.name || 'Unknown',
+                name: booking.student?.name || 'Unknown',
 
                 email: booking.student?.email || '',
 
@@ -261,13 +261,13 @@ export function AdminDashboard() {
 
                 hostel: booking.bed?.room?.hostel?.name || 'Unknown',
 
-                room: booking.room_number || booking.bed?.room?.room_number || 'Unknown',
+                room: booking.bed?.room?.room_number || 'Unknown',
 
                 bed: booking.bed?.bed_number || 'Unknown',
 
-                admission_number: booking.admission_number,
+                admission_number: booking.student?.admission_number,
 
-                academic_year: booking.academic_year,
+                academic_year: booking.student?.academic_year,
 
                 amount: booking.amount,
 

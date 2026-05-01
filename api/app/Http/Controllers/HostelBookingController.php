@@ -22,8 +22,6 @@ class HostelBookingController extends Controller
         $validator = Validator::make($request->all(), [
             'student_id' => 'required|exists:users,id',
             'bed_id' => 'required|exists:beds,id',
-            'academic_year' => 'required|string',
-            'admission_number' => 'required|string|exists:users,admission_number',
             'status' => 'required|in:active,completed,cancelled',
         ]);
 
@@ -51,7 +49,6 @@ class HostelBookingController extends Controller
             $booking = HostelBooking::create([
                 'student_id' => $request->student_id,
                 'bed_id' => $request->bed_id,
-                'academic_year' => $request->academic_year,
                 'status' => $request->status,
                 'booking_date' => now(),
             ]);
@@ -175,16 +172,14 @@ class HostelBookingController extends Controller
     public function storeFromFrontend(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'hostel_id' => 'required|exists:hostels,id',
-            'room_number' => 'required|string',
+            'student_id' => 'required|exists:users,id',
             'bed_id' => 'required|exists:beds,id',
             'status' => 'required|in:active,completed,cancelled',
-            'academic_year' => 'required|string',
-            'student_name' => 'required|string',
-            'admission_number' => 'required|string',
             'amount' => 'required|numeric|min:0',
             'controlnumber' => 'required|string|unique:hostel_bookings,controlnumber',
             'booking_date' => 'required|date',
+            'admission_number' => 'required|string',
+            'academic_year' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -209,26 +204,24 @@ class HostelBookingController extends Controller
             }
 
             $booking = HostelBooking::create([
-                'hostel_id' => $request->hostel_id,
-                'room_number' => $request->room_number,
+                'student_id' => $request->student_id,
                 'bed_id' => $request->bed_id,
                 'status' => $request->status,
-                'academic_year' => $request->academic_year,
-                'student_name' => $request->student_name,
-                'admission_number' => $request->admission_number,
                 'amount' => $request->amount,
                 'controlnumber' => $request->controlnumber,
                 'booking_date' => $request->booking_date,
+                'admission_number' => $request->admission_number,
+                'academic_year' => $request->academic_year,
             ]);
 
             // Create payment record automatically when booking is successful
             try {
-                $student = User::where('admission_number', $request->admission_number)->first();
+                $student = User::find($request->student_id);
                 
                 if ($student) {
                     PaymentHostel::create([
                         'student_id' => $student->id,
-                        'academic_year' => $request->academic_year,
+                        'academic_year' => $student->academic_year,
                         'booking_id' => $booking->id,
                         'amount' => $request->amount,
                         'status' => 'paid', // Mark as paid since booking was successful
@@ -268,7 +261,7 @@ class HostelBookingController extends Controller
                 'id' => $booking->id,
                 'success' => true,
                 'message' => 'Booking created successfully',
-                'booking' => $booking->load(['bed.room.hostel'])
+                'booking' => $booking->load(['student', 'bed.room.hostel'])
             ], 201);
 
         } catch (\Exception $e) {
@@ -297,8 +290,8 @@ class HostelBookingController extends Controller
 
     public function getByStudent($studentId)
     {
-        $bookings = HostelBooking::with(['bed.room.hostel'])
-            ->where('admission_number', $studentId)
+        $bookings = HostelBooking::with(['bed.room.hostel', 'student'])
+            ->where('student_id', $studentId)
             ->get();
 
         return response()->json($bookings);
@@ -367,6 +360,31 @@ class HostelBookingController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Update failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getUserById($id)
+    {
+        try {
+            $user = User::find($id);
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not found'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'user' => $user
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch user: ' . $e->getMessage()
             ], 500);
         }
     }
